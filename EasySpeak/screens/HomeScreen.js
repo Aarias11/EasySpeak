@@ -29,6 +29,7 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.appNameContainer}>
                     <Text style={styles.appNameHeader}>EasySpeak</Text>
                 </View>
+                {/* Languages Container */}
                 <View style={styles.languagesContainer}>
                 <TouchableOpacity style={styles.translateLanguageButton}>
             <Text style={styles.languageButtonText}>English </Text>
