@@ -9,10 +9,13 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Keyboard
+  Keyboard,
+  Image, 
+  Alert
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from 'axios';
+import { auth, db, doc, getDoc } from '../firebase';
 
 const ChatBubble = ({ isRight, placeholder, onSend, conversation, scrollToInput }) => {
   const [text, setText] = useState('');
@@ -87,11 +90,13 @@ const ConversationScreen = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
   const [showUserInput, setShowUserInput] = useState(true); // State to control user input visibility
   const [showResponderInput, setShowResponderInput] = useState(false); // State to control responder input visibility
+  const [avatar, setAvatar] = useState(null);
   const scrollViewRef = useRef(null); // Ref for ScrollView
   const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();
+    fetchUserProfile();
   }, []);
 
   useEffect(() => {
@@ -105,6 +110,25 @@ const ConversationScreen = ({ navigation }) => {
       setLanguages(response.data.data.languages);
     } catch (error) {
       console.error('Error fetching languages:', error.response ? error.response.data : error.message);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Error', 'User not logged in');
+      return;
+    }
+
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setAvatar(userData.avatar || null);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile: ', error);
     }
   };
 
@@ -179,22 +203,20 @@ const ConversationScreen = ({ navigation }) => {
         keyboardVerticalOffset={80} // Adjust this value based on your UI
       >
         <View style={styles.avatarAndSettingsContainer}>
-          {/* Avatar Container */}
-          <View style={styles.avatarContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-              <MaterialIcons name="circle" size={60} color="white" />
-            </TouchableOpacity>
-          </View>
-          {/* Settings Icon Button */}
+          <TouchableOpacity onPress={() => navigation.navigate("Account")}>
+            {avatar ? (
+              <Image source={{ uri: avatar }} style={styles.avatar} />
+            ) : (
+              <MaterialIcons name="account-circle" size={60} color="white" />
+            )}
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
             <MaterialIcons name="settings" size={30} color="white" />
           </TouchableOpacity>
         </View>
-        {/* App Name Container */}
         <View style={styles.appNameContainer}>
           <Text style={styles.appNameHeader}>Conversation</Text>
         </View>
-        {/* Translation Picker Buttons */}
         <View style={styles.languagesContainer}>
           <TouchableOpacity 
             style={styles.translateLanguageButton}
@@ -254,7 +276,6 @@ const ConversationScreen = ({ navigation }) => {
             </View>
           )}
         </View>
-        {/* Conversation Box Container */}
         <ScrollView style={styles.conversationBoxContainer} ref={scrollViewRef}>
           {conversations.map((conversation, index) => (
             <ChatBubble
@@ -303,6 +324,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 17,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderColor: "rgba(41, 115, 134, 0.44)",
+    
   },
   appNameContainer: {
     alignItems: "center",
@@ -416,6 +444,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     color: '#ecf0ef'
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'white',
   },
 });
 

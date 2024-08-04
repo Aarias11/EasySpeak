@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import axios from 'axios';
+import { auth, db, doc, getDoc } from '../firebase';
 
 const HomeScreen = ({ navigation }) => {
   const [fromLanguage, setFromLanguage] = useState('en'); // Default "from" language is English
@@ -15,10 +16,12 @@ const HomeScreen = ({ navigation }) => {
   const [filteredLanguages, setFilteredLanguages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
+  const [avatar, setAvatar] = useState(null);
   const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();
+    fetchUserProfile();
   }, []);
 
   useEffect(() => {
@@ -32,6 +35,25 @@ const HomeScreen = ({ navigation }) => {
       setLanguages(response.data.data.languages);
     } catch (error) {
       console.error('Error fetching languages:', error.response ? error.response.data : error.message);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Error', 'User not logged in');
+      return;
+    }
+
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setAvatar(userData.avatar || null);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile: ', error);
     }
   };
 
@@ -87,7 +109,11 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.container}>
         <View style={styles.avatarAndSettingsContainer}>
           <TouchableOpacity onPress={() => navigation.navigate('Account')}>
-            <MaterialIcons name="circle" size={60} color="white" />
+            {avatar ? (
+              <Image source={{ uri: avatar }} style={styles.avatar} />
+            ) : (
+              <MaterialIcons name="account-circle" size={60} color="white" />
+            )}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
             <MaterialIcons name="settings" size={30} color="white" />
@@ -195,6 +221,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 17,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderColor: "rgba(41, 115, 134, 0.44)",
+    
   },
   appNameContainer: {
     width: '100%',

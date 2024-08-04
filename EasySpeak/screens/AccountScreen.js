@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
-  ScrollView,
+  Image,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
+import * as ImagePicker from 'expo-image-picker';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { storage, db, auth, doc, getDoc, updateDoc, setDoc } from '../firebase';
 
 // Importing the modal content components
 import EditProfileComponent from "../components/EditProfileComponent";
@@ -19,10 +24,109 @@ import TermsOfServiceComponent from "../components/TermsofServiceComponent";
 const AccountScreen = ({ navigation }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState("");
+  const [avatar, setAvatar] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Error', 'User not logged in');
+      return;
+    }
+
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setAvatar(userData.avatar || null);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile: ', error);
+    }
+  };
 
   const toggleModal = (content) => {
     setModalContent(content);
     setModalVisible(!isModalVisible);
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      await uploadImage(result.assets[0].uri);
+    } else {
+      Alert.alert('Cancelled', 'No image selected');
+    }
+  };
+
+  const uploadImage = async (uri) => {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const user = auth.currentUser;
+
+      if (!user) {
+        Alert.alert('Error', 'User not logged in');
+        return;
+      }
+
+      const storageRef = ref(storage, `avatars/${user.uid}`);
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      setUploading(true);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          // Progress function ...
+        },
+        (error) => {
+          setUploading(false);
+          Alert.alert('Error', 'Error uploading image: ' + error.message);
+        },
+        async () => {
+          setUploading(false);
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setAvatar(downloadURL);
+          await updateProfilePicture(downloadURL);
+        }
+      );
+    } catch (error) {
+      setUploading(false);
+      Alert.alert('Error', 'Error uploading image: ' + error.message);
+    }
+  };
+
+  const updateProfilePicture = async (downloadURL) => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Error', 'User not logged in');
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        await updateDoc(userDocRef, { avatar: downloadURL });
+      } else {
+        await setDoc(userDocRef, { avatar: downloadURL });
+      }
+    } catch (error) {
+      Alert.alert('Error updating profile', error.message);
+    }
   };
 
   const renderModalContent = () => {
@@ -50,7 +154,17 @@ const AccountScreen = ({ navigation }) => {
           <Text style={styles.accountNameHeader}>Account</Text>
         </View>
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar} />
+          <TouchableOpacity onPress={pickImage}>
+            {uploading ? (
+              <ActivityIndicator size="large" color="#2CB5DA" />
+            ) : (
+              avatar ? (
+                <Image source={{ uri: avatar }} style={styles.avatar} />
+              ) : (
+                <MaterialIcons name="account-circle" size={100} color="white" />
+              )
+            )}
+          </TouchableOpacity>
         </View>
         <View style={styles.emailContainer}>
           <Text style={styles.emailHeader}>johndoe11@example.com</Text>
@@ -159,7 +273,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: "rgba(41, 115, 134, 0.44)",
   },
   emailContainer: {
     width: "100%",

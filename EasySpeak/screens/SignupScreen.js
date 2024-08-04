@@ -1,14 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Alert } from 'react-native';
+import { auth, createUserWithEmailAndPassword, db, setDoc, doc } from '../firebase';
 
 const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleSignup = () => {
-    // Add signup logic here
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Create a new user document in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        avatar: null
+      });
+
+      navigation.navigate('Login');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
   };
 
   return (
@@ -24,6 +42,8 @@ const SignupScreen = ({ navigation }) => {
           placeholderTextColor="#A7CCD6"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
         <TextInput
           style={styles.input}

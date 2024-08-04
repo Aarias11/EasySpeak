@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Add login logic here
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Navigate to the main app screen after successful login
+      navigation.navigate('Main');
+    } catch (error) {
+      console.error('Error logging in: ', error);
+    }
   };
 
   return (
@@ -24,6 +31,8 @@ const LoginScreen = ({ navigation }) => {
           placeholderTextColor="#A7CCD6"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
         <TextInput
           style={styles.input}
