@@ -72,9 +72,9 @@ const CameraScreen = ({ navigation }) => {
   if (!permission.granted) {
     // Camera permissions are not granted yet.
     return (
-      <View style={styles.container}>
+      <View style={styles.permissionContainer}>
         <Text style={styles.permission}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button style={styles.permissionButton} onPress={requestPermission} title="grant permission" />
       </View>
     );
   }
@@ -475,6 +475,22 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     color: '#ecf0ef',
   },
+  permissionContainer: {
+    width: '100',
+    height: '100%',
+    backgroundColor: 'black',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  permission: {
+    color: 'white',
+    
+  },
+  permissionButton: {
+
+  }
+
 });
 
 export default CameraScreen;

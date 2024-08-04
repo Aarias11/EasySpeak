@@ -302,11 +302,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
+    paddingHorizontal: 17,
   },
   appNameContainer: {
     alignItems: "center",
-    marginBottom: 20,
+    bottom: 20,
   },
   appNameHeader: {
     color: "white",
