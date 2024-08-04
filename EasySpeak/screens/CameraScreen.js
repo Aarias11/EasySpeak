@@ -259,17 +259,19 @@ const CameraScreen = ({ navigation }) => {
             </View>
           )}
         </View>
-        <CameraView
-          style={styles.camera}
-          type={facing}
-          ref={(ref) => setCameraRef(ref)}
-        >
-          <View style={styles.captureContainer}>
-            <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
-              <MaterialIcons name="camera-alt" size={30} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </CameraView>
+        {permission.granted && (
+          <CameraView
+            style={styles.camera}
+            type={facing}
+            ref={(ref) => setCameraRef(ref)}
+          >
+            <View style={styles.captureContainer}>
+              <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
+                <MaterialIcons name="camera-alt" size={30} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+        )}
         {loading && (
           <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color="#2CB5DA" />
@@ -310,6 +312,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     width: '100%',
+    backgroundColor: 'transparent',
   },
   captureContainer: {
     flex: 0,
@@ -476,21 +479,17 @@ const styles = StyleSheet.create({
     color: '#ecf0ef',
   },
   permissionContainer: {
-    width: '100',
+    width: '100%',
     height: '100%',
     backgroundColor: 'black',
     flexDirection: 'column',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   permission: {
     color: 'white',
-    
   },
-  permissionButton: {
-
-  }
-
+  permissionButton: {},
 });
 
 export default CameraScreen;

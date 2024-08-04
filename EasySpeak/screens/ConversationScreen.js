@@ -16,6 +16,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from 'axios';
 import { auth, db, doc, getDoc } from '../firebase';
+import TopHeaderNav from "../components/TopHeaderNav";
 
 const ChatBubble = ({ isRight, placeholder, onSend, conversation, scrollToInput }) => {
   const [text, setText] = useState('');
@@ -202,18 +203,7 @@ const ConversationScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={80} // Adjust this value based on your UI
       >
-        <View style={styles.avatarAndSettingsContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-            {avatar ? (
-              <Image source={{ uri: avatar }} style={styles.avatar} />
-            ) : (
-              <MaterialIcons name="account-circle" size={60} color="white" />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-            <MaterialIcons name="settings" size={30} color="white" />
-          </TouchableOpacity>
-        </View>
+        <TopHeaderNav />
         <View style={styles.appNameContainer}>
           <Text style={styles.appNameHeader}>Conversation</Text>
         </View>
@@ -317,21 +307,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
     alignItems: "center",
   },
-  avatarAndSettingsContainer: {
-    width: "100%",
-    height: 100,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 17,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderColor: "rgba(41, 115, 134, 0.44)",
-    
-  },
+  
   appNameContainer: {
     alignItems: "center",
     bottom: 20,

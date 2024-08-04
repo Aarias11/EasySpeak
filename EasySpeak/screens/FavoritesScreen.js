@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import TopHeaderNav from "../components/TopHeaderNav";
 
 const FavoritesScreen = ({ navigation }) => {
   return (
@@ -18,18 +19,7 @@ const FavoritesScreen = ({ navigation }) => {
       {/* Container */}
       <View style={styles.container}>
         {/* Avatar and Settings Container */}
-        <View style={styles.avatarAndSettingsContainer}>
-          {/* Avatar Container */}
-          <View style={styles.avatarContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-              <MaterialIcons name="circle" size={60} color="white" />
-            </TouchableOpacity>
-          </View>
-          {/* Settings Icon Button */}
-          <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-            <MaterialIcons name="settings" size={30} color="white" />
-          </TouchableOpacity>
-        </View>
+        <TopHeaderNav />
         {/* App Name Container */}
         <View style={styles.appNameContainer}>
           <Text style={styles.appNameHeader}>Favorites</Text>
