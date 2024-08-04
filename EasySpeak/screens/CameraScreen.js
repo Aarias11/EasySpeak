@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Button, ImageBackground, Animated, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Button, ImageBackground, Animated, ScrollView, TextInput, PanResponder } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -22,6 +22,7 @@ const CameraScreen = ({ navigation }) => {
   const [searchFromLanguage, setSearchFromLanguage] = useState('');
   const [searchToLanguage, setSearchToLanguage] = useState('');
   const translationSlideAnim = useRef(new Animated.Value(0)).current;
+  const pan = useRef(new Animated.ValueXY()).current;
 
   const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
 
@@ -150,12 +151,43 @@ const CameraScreen = ({ navigation }) => {
   };
 
   const slideUpTranslation = () => {
+    pan.setValue({ x: 0, y: 0 });
     Animated.timing(translationSlideAnim, {
       toValue: 1,
       duration: 500,
       useNativeDriver: true,
     }).start();
   };
+
+  const slideDownTranslation = () => {
+    Animated.timing(translationSlideAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      setTranslatedText(''); // Reset translated text after sliding down
+    });
+  };
+
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (evt, gestureState) => {
+      // Enable pan responder only if user swipes left or right
+      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+    },
+    onPanResponderMove: Animated.event([null, { dx: pan.x }], { useNativeDriver: false }),
+    onPanResponderRelease: (evt, gestureState) => {
+      if (Math.abs(gestureState.dx) > 100) {
+        // If swipe distance is greater than 100, slide down the translation
+        slideDownTranslation();
+      } else {
+        // Reset position if swipe distance is less than 100
+        Animated.spring(pan, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+  });
 
   const getLanguageName = (code) => {
     const language = languages.find(lang => lang.language === code);
@@ -213,7 +245,6 @@ const CameraScreen = ({ navigation }) => {
                   style={styles.searchInput}
                   placeholder="Search language"
                   placeholderTextColor="#ecf0ef"
-
                   value={searchToLanguage}
                   onChangeText={handleSearchToLanguage}
                 />
@@ -245,16 +276,15 @@ const CameraScreen = ({ navigation }) => {
           </View>
         )}
         {!loading && translatedText && (
-          <Animated.View style={[styles.translationContainer, {
-            transform: [
-              {
-                translateY: translationSlideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [500, 0], // Slide from bottom to top
-                }),
-              },
-            ],
-          }]}>
+          <Animated.View
+            {...panResponder.panHandlers}
+            style={[styles.translationContainer, {
+              transform: [
+                { translateY: translationSlideAnim.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) },
+                { translateX: pan.x }
+              ],
+            }]}
+          >
             <Text style={styles.translationTitle}>Translation:</Text>
             <ScrollView>
               <Text style={styles.translatedText}>{translatedText}</Text>
@@ -269,12 +299,11 @@ const CameraScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    resizeMode: "cover",
+    resizeMode: 'cover',
   },
   container: {
     flex: 1,
-    alignItems: "center",
-    
+    alignItems: 'center',
   },
   camera: {
     flex: 1,
@@ -339,7 +368,7 @@ const styles = StyleSheet.create({
   translationTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#F1F2F2'
+    color: '#F1F2F2',
   },
   translatedText: {
     fontSize: 18,
@@ -363,18 +392,18 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   languagesContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
     marginBottom: 10,
     gap: 10,
     zIndex: 20, // Ensure the dropdown stays in front of the translation container
   },
   languagesTopContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
     marginBottom: 10,
     gap: 10,
@@ -385,33 +414,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   translateLanguageButton: {
-    backgroundColor: "#297386",
+    backgroundColor: '#297386',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginHorizontal: 5, // Add spacing between buttons
     flexDirection: 'row',
-    justifyContent: "center",
+    justifyContent: 'center',
     gap: 5,
-    alignItems: 'center'
+    alignItems: 'center',
+    zIndex: 10, // Ensure it stays in front of other elements
   },
   translateTopLanguageButton: {
-    backgroundColor: "#297386",
+    backgroundColor: '#297386',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginHorizontal: 5, // Add spacing between buttons
     flexDirection: 'row',
-    justifyContent: "center",
+    justifyContent: 'center',
     gap: 5,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   languageButtonText: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
   },
   languageTopButtonText: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
   },
   dropdownContainer: {
@@ -427,25 +457,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0f0e',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    
   },
   searchInput: {
     marginLeft: 10,
     flex: 1,
     padding: 15,
-    color: '#ecf0ef'
-
+    color: '#ecf0ef',
   },
   dropdown: {
     backgroundColor: '#0a0f0e',
     borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15
+    borderBottomRightRadius: 15,
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    color: '#ecf0ef'
+    color: '#ecf0ef',
   },
 });
 
