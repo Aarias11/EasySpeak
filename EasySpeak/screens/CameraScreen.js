@@ -72,7 +72,7 @@ const CameraScreen = ({ navigation }) => {
     // Camera permissions are not granted yet.
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
+        <Text style={styles.permission}>We need your permission to show the camera</Text>
         <Button onPress={requestPermission} title="grant permission" />
       </View>
     );
@@ -274,6 +274,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
+    
   },
   camera: {
     flex: 1,
@@ -326,6 +327,7 @@ const styles = StyleSheet.create({
   },
   translationContainer: {
     width: '95%',
+    height: 500,
     padding: 10,
     borderRadius: 15,
     backgroundColor: 'rgba(10, 10, 10, 0.65)',

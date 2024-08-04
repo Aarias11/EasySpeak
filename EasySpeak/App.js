@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
+import * as AV from 'expo-av';
 
 // Import your screen components
 import HomeScreen from './screens/HomeScreen';
@@ -36,6 +38,26 @@ function HomeStack() {
 }
 
 export default function App() {
+  const [isRecording, setIsRecording] = useState(false);
+
+  const handleMicPress = async () => {
+    if (isRecording) {
+      // Stop recording and translate speech to text
+      // This is a placeholder for stopping the recording
+      // You would need to integrate a speech-to-text service here
+      console.log("Stopped recording");
+    } else {
+      // Request permission and start recording
+      const { status } = await AV.Audio.requestPermissionsAsync();
+      if (status === 'granted') {
+        console.log("Started recording");
+        // This is a placeholder for starting the recording
+        // You would need to integrate a speech-to-text service here
+      }
+    }
+    setIsRecording(!isRecording);
+  };
+
   return (
     <NavigationContainer>
       {/* Set the status bar style here */}
@@ -78,7 +100,7 @@ export default function App() {
         />
         <Tab.Screen
           name="ActionButton"
-          component={ConversationScreen}
+          component={HomeScreen}
           options={{
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="mic" color="white" size={30} />
@@ -89,6 +111,12 @@ export default function App() {
               </CustomTabBarButton>
             ),
             headerShown: false,
+          }}
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              handleMicPress();
+            },
           }}
         />
         <Tab.Screen

@@ -157,18 +157,16 @@ const HomeScreen = ({ navigation }) => {
         </View>
         <View style={styles.translationBox}>
           <BlurView intensity={15} style={styles.blur}>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.inputTranslation}
-                placeholder="Type or Push Mic to Translate"
-                placeholderTextColor="#A7CCD6"
-                value={inputText}
-                onChangeText={setInputText}
-              />
-              <TouchableOpacity onPress={translateText} style={styles.translateButton}>
-                <Text style={styles.translateButtonText}>Translate</Text>
-              </TouchableOpacity>
-            </View>
+            <TextInput
+              style={styles.inputTranslation}
+              placeholder="Type or Push Mic to Translate"
+              placeholderTextColor="#A7CCD6"
+              value={inputText}
+              onChangeText={setInputText}
+            />
+            <TouchableOpacity onPress={translateText} style={styles.translateButton}>
+              <Text style={styles.translateButtonText}>Translate</Text>
+            </TouchableOpacity>
             {translatedText ? (
               <View style={styles.translatedTextContainer}>
                 <Text style={styles.translatedText}>{translatedText}</Text>
@@ -224,18 +222,16 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 25,
     overflow: 'hidden',
-    padding: 20,
-  },
-  inputContainer: {
-    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   inputTranslation: {
     color: '#A7CCD6',
     fontSize: 20,
     fontWeight: '600',
     width: '100%',
+    top: -220
   },
   translateButton: {
     marginTop: 20,
