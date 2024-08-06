@@ -8,6 +8,8 @@ import axios from 'axios';
 const CameraScreen = ({ navigation }) => {
   const [facing, setFacing] = useState('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [cameraRef, setCameraRef] = useState(null);
   const [loading, setLoading] = useState(false);
   const [translatedText, setTranslatedText] = useState('');
@@ -33,6 +35,12 @@ const CameraScreen = ({ navigation }) => {
   useEffect(() => {
     setFilteredLanguages(languages);
   }, [languages]);
+
+  useEffect(() => {
+    if (permission?.granted) {
+      setPermissionsGranted(true);
+    }
+  }, [permission]);
 
   const fetchLanguages = async () => {
     const url = `https://translation.googleapis.com/language/translate/v2/languages?key=${apiKey}&target=en`;
@@ -94,7 +102,7 @@ const CameraScreen = ({ navigation }) => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setLoading(true);
       detectText(result.base64);
     }
@@ -194,6 +202,13 @@ const CameraScreen = ({ navigation }) => {
     return language ? language.name : 'Unknown';
   };
 
+
+  const swapLanguages = () => {
+    setFromLanguage(toLanguage);
+    setToLanguage(fromLanguage);
+    setTranslatedText('');
+  }
+
   return (
     <ImageBackground
       source={require("../../EasySpeak/assets/background/background.png")}
@@ -229,7 +244,11 @@ const CameraScreen = ({ navigation }) => {
               </ScrollView>
             </View>
           )}
+          
+          <TouchableOpacity onPress={swapLanguages}>
           <MaterialIcons name="swap-horiz" size={30} color="white" />
+
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.translateTopLanguageButton}
             onPress={() => setShowToDropdown(!showToDropdown)}
@@ -259,18 +278,26 @@ const CameraScreen = ({ navigation }) => {
             </View>
           )}
         </View>
-        {permission.granted && (
-          <CameraView
-            style={styles.camera}
-            type={facing}
-            ref={(ref) => setCameraRef(ref)}
-          >
-            <View style={styles.captureContainer}>
-              <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
-                <MaterialIcons name="camera-alt" size={30} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </CameraView>
+        {permissionsGranted && (
+          <>
+            {!cameraReady && (
+              <View style={styles.loaderContainer}>
+                <ActivityIndicator size="large" color="#2CB5DA" />
+              </View>
+            )}
+            <CameraView
+              style={styles.camera}
+              type={facing}
+              ref={(ref) => setCameraRef(ref)}
+              onCameraReady={() => setCameraReady(true)}
+            >
+              <View style={styles.captureContainer}>
+                <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
+                  <MaterialIcons name="camera-alt" size={30} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </CameraView>
+          </>
         )}
         {loading && (
           <View style={styles.loaderContainer}>

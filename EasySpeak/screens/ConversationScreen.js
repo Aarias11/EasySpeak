@@ -10,28 +10,36 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  Image, 
-  Alert
+  Image,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import axios from 'axios';
-import { auth, db, doc, getDoc } from '../firebase';
+import axios from "axios";
+import { auth, db, doc, getDoc } from "../firebase";
 import TopHeaderNav from "../components/TopHeaderNav";
 
-const ChatBubble = ({ isRight, placeholder, onSend, conversation, scrollToInput }) => {
-  const [text, setText] = useState('');
+const ChatBubble = ({
+  isRight,
+  placeholder,
+  onSend,
+  conversation,
+  scrollToInput,
+}) => {
+  const [text, setText] = useState("");
+  const [inputHeight, setInputHeight] = useState(50);
   const inputRef = useRef(null);
 
   const handleSend = () => {
     if (text.trim()) {
       onSend(text);
-      setText('');
+      setText("");
+      setInputHeight(50); // Reset input height after sending
     }
   };
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
+      "keyboardDidShow",
       () => {
         if (inputRef.current) {
           scrollToInput(inputRef);
@@ -55,19 +63,22 @@ const ChatBubble = ({ isRight, placeholder, onSend, conversation, scrollToInput 
       style={[styles.chatCard, isRight && styles.chatCardRight]}
     >
       {conversation ? (
-        <>
+        <View style={styles.translatedCard}>
           <Text style={styles.chatText}>{conversation.original}</Text>
           <Text style={styles.translationText}>{conversation.translated}</Text>
-        </>
+        </View>
       ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+        <View style={styles.cardInputContainer}>
           <TextInput
             ref={inputRef}
-            style={styles.chatInput}
+            style={[styles.chatInput, { height: inputHeight }]}
             placeholder={placeholder}
             placeholderTextColor="#A7CCD6"
             value={text}
             onChangeText={setText}
+            onContentSizeChange={(event) =>
+              setInputHeight(event.nativeEvent.contentSize.height)
+            }
             multiline
           />
           <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
@@ -79,21 +90,28 @@ const ChatBubble = ({ isRight, placeholder, onSend, conversation, scrollToInput 
   );
 };
 
+
+
+
+
+
+
+
 const ConversationScreen = ({ navigation }) => {
-  const [fromLanguage, setFromLanguage] = useState('en'); // Default "from" language is English
-  const [toLanguage, setToLanguage] = useState('es'); // Default "to" language is Spanish
+  const [fromLanguage, setFromLanguage] = useState("en"); // Default "from" language is English
+  const [toLanguage, setToLanguage] = useState("es"); // Default "to" language is Spanish
   const [languages, setLanguages] = useState([]);
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown] = useState(false);
-  const [searchFromLanguage, setSearchFromLanguage] = useState('');
-  const [searchToLanguage, setSearchToLanguage] = useState('');
+  const [searchFromLanguage, setSearchFromLanguage] = useState("");
+  const [searchToLanguage, setSearchToLanguage] = useState("");
   const [filteredLanguages, setFilteredLanguages] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [showUserInput, setShowUserInput] = useState(true); // State to control user input visibility
   const [showResponderInput, setShowResponderInput] = useState(false); // State to control responder input visibility
   const [avatar, setAvatar] = useState(null);
   const scrollViewRef = useRef(null); // Ref for ScrollView
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
+  const apiKey = "AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk"; // Replace with your Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();
@@ -110,7 +128,10 @@ const ConversationScreen = ({ navigation }) => {
       const response = await axios.get(url);
       setLanguages(response.data.data.languages);
     } catch (error) {
-      console.error('Error fetching languages:', error.response ? error.response.data : error.message);
+      console.error(
+        "Error fetching languages:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
@@ -118,44 +139,48 @@ const ConversationScreen = ({ navigation }) => {
     const user = auth.currentUser;
 
     if (!user) {
-      Alert.alert('Error', 'User not logged in');
+      Alert.alert("Error", "User not logged in");
       return;
     }
 
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
         setAvatar(userData.avatar || null);
       }
     } catch (error) {
-      console.error('Error fetching user profile: ', error);
+      console.error("Error fetching user profile: ", error);
     }
   };
 
   const handleSearchFromLanguage = (text) => {
     setSearchFromLanguage(text);
-    if (text === '') {
+    if (text === "") {
       setFilteredLanguages(languages);
     } else {
-      const filtered = languages.filter((lang) => lang.name.toLowerCase().includes(text.toLowerCase()));
+      const filtered = languages.filter((lang) =>
+        lang.name.toLowerCase().includes(text.toLowerCase())
+      );
       setFilteredLanguages(filtered);
     }
   };
 
   const handleSearchToLanguage = (text) => {
     setSearchToLanguage(text);
-    if (text === '') {
+    if (text === "") {
       setFilteredLanguages(languages);
     } else {
-      const filtered = languages.filter((lang) => lang.name.toLowerCase().includes(text.toLowerCase()));
+      const filtered = languages.filter((lang) =>
+        lang.name.toLowerCase().includes(text.toLowerCase())
+      );
       setFilteredLanguages(filtered);
     }
   };
 
   const getLanguageName = (code) => {
-    const language = languages.find(lang => lang.language === code);
-    return language ? language.name : 'Unknown';
+    const language = languages.find((lang) => lang.language === code);
+    return language ? language.name : "Unknown";
   };
 
   const translateText = async (text, isUser) => {
@@ -171,10 +196,15 @@ const ConversationScreen = ({ navigation }) => {
     };
 
     try {
-      const response = await axios.post(translateUrl, null, { params: translatePayload });
+      const response = await axios.post(translateUrl, null, {
+        params: translatePayload,
+      });
       const translation = response.data.data.translations[0].translatedText;
-      setConversations([...conversations, { original: text, translated: translation, isUser }]);
-      
+      setConversations([
+        ...conversations,
+        { original: text, translated: translation, isUser },
+      ]);
+
       if (isUser) {
         setShowUserInput(false);
         setShowResponderInput(true);
@@ -183,24 +213,39 @@ const ConversationScreen = ({ navigation }) => {
         setShowUserInput(true);
       }
     } catch (error) {
-      console.error('Error translating text:', error.response ? error.response.data : error.message);
+      console.error(
+        "Error translating text:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
+
+  const swapLanguages = () => {
+    setFromLanguage(toLanguage);
+    setToLanguage(fromLanguage);
+    // setInputText('')
+    // setTranslatedText('');
+
+  }
+
   const scrollToInput = (inputRef) => {
-    inputRef.current.measureLayout(scrollViewRef.current.getScrollResponder(), (x, y) => {
-      scrollViewRef.current.scrollTo({ x: 0, y: y, animated: true });
-    });
+    inputRef.current.measureLayout(
+      scrollViewRef.current.getScrollResponder(),
+      (x, y) => {
+        scrollViewRef.current.scrollTo({ x: 0, y: y, animated: true });
+      }
+    );
   };
 
   return (
     <ImageBackground
-      source={require("../../EasySpeak/assets/background/background.png")}
+      source={require("../../EasySpeak/assets/background/backgroundone.png")}
       style={styles.backgroundImage}
     >
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={80} // Adjust this value based on your UI
       >
         <TopHeaderNav />
@@ -208,12 +253,18 @@ const ConversationScreen = ({ navigation }) => {
           <Text style={styles.appNameHeader}>Conversation</Text>
         </View>
         <View style={styles.languagesContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.translateLanguageButton}
             onPress={() => setShowFromDropdown(!showFromDropdown)}
           >
-            <Text style={styles.languageButtonText}>{getLanguageName(fromLanguage)}</Text>
-            <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
+            <Text style={styles.languageButtonText}>
+              {getLanguageName(fromLanguage)}
+            </Text>
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              color={"white"}
+              size={15}
+            />
           </TouchableOpacity>
           {showFromDropdown && (
             <View style={styles.dropdownContainer}>
@@ -228,21 +279,36 @@ const ConversationScreen = ({ navigation }) => {
                 />
               </View>
               <ScrollView style={styles.dropdown}>
-                {filteredLanguages.map(item => (
-                  <TouchableOpacity key={item.language} onPress={() => { setFromLanguage(item.language); setShowFromDropdown(false); }}>
+                {filteredLanguages.map((item) => (
+                  <TouchableOpacity
+                    key={item.language}
+                    onPress={() => {
+                      setFromLanguage(item.language);
+                      setShowFromDropdown(false);
+                    }}
+                  >
                     <Text style={styles.dropdownItem}>{item.name}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
             </View>
           )}
+            <TouchableOpacity onPress={swapLanguages}>
+
           <MaterialIcons name="swap-horiz" size={30} color="white" />
-          <TouchableOpacity 
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.translateLanguageButton}
             onPress={() => setShowToDropdown(!showToDropdown)}
           >
-            <Text style={styles.languageButtonText}>{getLanguageName(toLanguage)}</Text>
-            <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
+            <Text style={styles.languageButtonText}>
+              {getLanguageName(toLanguage)}
+            </Text>
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              color={"white"}
+              size={15}
+            />
           </TouchableOpacity>
           {showToDropdown && (
             <View style={styles.dropdownContainer}>
@@ -257,8 +323,14 @@ const ConversationScreen = ({ navigation }) => {
                 />
               </View>
               <ScrollView style={styles.dropdown}>
-                {filteredLanguages.map(item => (
-                  <TouchableOpacity key={item.language} onPress={() => { setToLanguage(item.language); setShowToDropdown(false); }}>
+                {filteredLanguages.map((item) => (
+                  <TouchableOpacity
+                    key={item.language}
+                    onPress={() => {
+                      setToLanguage(item.language);
+                      setShowToDropdown(false);
+                    }}
+                  >
                     <Text style={styles.dropdownItem}>{item.name}</Text>
                   </TouchableOpacity>
                 ))}
@@ -307,7 +379,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     alignItems: "center",
   },
-  
   appNameContainer: {
     alignItems: "center",
     bottom: 20,
@@ -322,83 +393,98 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
-    gap: 10
+    gap: 10,
   },
   translateLanguageButton: {
     backgroundColor: "#297386",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-    marginHorizontal: 5, // Add spacing between buttons
-    flexDirection: 'row',
+    marginHorizontal: 5,
+    flexDirection: "row",
     justifyContent: "center",
     gap: 5,
-    alignItems: 'center'
+    alignItems: "center",
   },
   languageButtonText: {
     color: "white",
     fontSize: 16,
   },
   conversationBoxContainer: {
-    width: "90%",
+    width: "85%",
     marginTop: 20,
     flexDirection: "column",
+    gap: 5, // Gap between each card
   },
   chatCard: {
     backgroundColor: "rgba(68, 68, 68, 0.25)",
     borderRadius: 20,
-    padding: 24,
-    marginVertical: 5,
     borderWidth: 1,
-    borderColor: 'rgba(68, 68, 68, 0.35)',
-    maxWidth: '70%',
-    flexDirection: 'column', // Changed to column to stack texts
+    borderColor: "rgba(68, 68, 68, 0.35)",
+    width: "80%",
+    marginVertical: 3,
   },
   chatCardRight: {
     alignSelf: "flex-end",
+    paddingRight: 10,
   },
   chatText: {
     color: "#A7CCD6",
     fontSize: 18,
     marginBottom: 5,
   },
+  translatedCard: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    paddingLeft: 25,
+    paddingVertical: 15,
+    padding: 10,
+  },
+  cardInputContainer: {
+    width: "100%",
+    height: 70, // Set a minimum height
+    flexDirection: "row",
+    alignItems: "flex-start", // Align items at the start of the container
+    justifyContent: "space-between",
+  },
   chatInput: {
-    color: '#A7CCD6',
+    color: "#A7CCD6",
     fontSize: 18,
-    width: '100%', // Adjusted to fit within the bubble
-    flexWrap: 'wrap', // Ensure text wraps inside the bubble
+    width: "89%",
+    height: '100%',
+    marginTop: 10,
+    // marginLeft: 10,
+    left: 20
   },
   sendButton: {
-    alignSelf: 'flex-end', // Align button to the end of the bubble
-    backgroundColor: '#2CB5DA',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  sendButtonText: {
-    color: 'white',
-    fontSize: 16,
+    width: "15%",
+    height: "100%", // Ensuring same height as input card
+    backgroundColor: "#2CB5DA",
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   translationText: {
     color: "#BBBBBB",
     fontSize: 14,
-    marginTop: 5, // Add margin between original and translated text
+    marginTop: 5,
   },
   dropdownContainer: {
-    maxHeight: 300, // Limit the height of the dropdown
-    width: '90%',
-    position: 'absolute',
+    maxHeight: 300,
+    width: "90%",
+    position: "absolute",
     top: 50,
     zIndex: 30,
-    backgroundColor: '#0a0f0e', // Ensure it stays in front
+    backgroundColor: "#0a0f0e",
     borderRadius: 10,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0a0f0e',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0a0f0e",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderTopLeftRadius: 10,
@@ -408,26 +494,35 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
     padding: 10,
-    color: '#ecf0ef'
+    color: "#ecf0ef",
   },
   dropdown: {
-    backgroundColor: '#0a0f0e',
+    backgroundColor: "#0a0f0e",
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    color: '#ecf0ef'
+    borderBottomColor: "#ccc",
+    color: "#ecf0ef",
   },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
   },
 });
 
 export default ConversationScreen;
+
+
+
+
+
+
+
+
+

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Alert } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import axios from 'axios';
-import { auth, db, doc, getDoc } from '../firebase';
+import { auth, db, collection, addDoc, doc, getDoc } from '../firebase';
 import TopHeaderNav from '../components/TopHeaderNav';
 
 const HomeScreen = ({ navigation }) => {
-  const [fromLanguage, setFromLanguage] = useState('en'); // Default "from" language is English
-  const [toLanguage, setToLanguage] = useState('es'); // Default "to" language is Spanish
+  const [fromLanguage, setFromLanguage] = useState('en');
+  const [toLanguage, setToLanguage] = useState('es');
   const [languages, setLanguages] = useState([]);
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown] = useState(false);
@@ -18,7 +18,7 @@ const HomeScreen = ({ navigation }) => {
   const [inputText, setInputText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [avatar, setAvatar] = useState(null);
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
+  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();
@@ -102,98 +102,141 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const addToFavorites = async () => {
+    if (translatedText) {
+      const user = auth.currentUser;
+      if (user) {
+        const favorite = {
+          originalText: inputText,
+          translatedText: translatedText,
+          userId: user.uid,
+        };
+        try {
+          await addDoc(collection(db, `users/${user.uid}/favorites`), favorite);
+          Alert.alert('Success', 'Translation added to favorites');
+        } catch (error) {
+          console.error("Error adding favorite: ", error);
+          Alert.alert('Error', 'Failed to add favorite');
+        }
+      } else {
+        Alert.alert('Error', 'User not logged in');
+      }
+    } else {
+      Alert.alert('Error', 'No translation available to add to favorites');
+    }
+  };
+
+  const swapLanguages = () => {
+    setFromLanguage(toLanguage);
+    setToLanguage(fromLanguage);
+    setInputText('');
+    setTranslatedText('');
+  };
+
   return (
-    <ImageBackground
-      source={require('../../EasySpeak/assets/background/background.png')}
-      style={styles.backgroundImage}
-    >
-      <View style={styles.container}>
-        <TopHeaderNav />
-        <View style={styles.appNameContainer}>
-          <Text style={styles.appNameHeader}>EasySpeak</Text>
-        </View>
-        <View style={styles.languagesContainer}>
-          <TouchableOpacity
-            style={styles.translateLanguageButton}
-            onPress={() => setShowFromDropdown(!showFromDropdown)}
-          >
-            <Text style={styles.languageButtonText}>{getLanguageName(fromLanguage)}</Text>
-            <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
-          </TouchableOpacity>
-          {showFromDropdown && (
-            <View style={styles.dropdownContainer}>
-              <View style={styles.searchContainer}>
-                <MaterialIcons name="search" size={20} color="#ccc" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search language"
-                  placeholderTextColor="#ccc"
-                  value={searchFromLanguage}
-                  onChangeText={handleSearchFromLanguage}
-                />
-              </View>
-              <ScrollView style={styles.dropdown}>
-                {filteredLanguages.map(item => (
-                  <TouchableOpacity key={item.language} onPress={() => { setFromLanguage(item.language); setShowFromDropdown(false); }}>
-                    <Text style={styles.dropdownItem}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-          <MaterialIcons name="swap-horiz" size={30} color="white" />
-          <TouchableOpacity
-            style={styles.translateLanguageButton}
-            onPress={() => setShowToDropdown(!showToDropdown)}
-          >
-            <Text style={styles.languageButtonText}>{getLanguageName(toLanguage)}</Text>
-            <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
-          </TouchableOpacity>
-          {showToDropdown && (
-            <View style={styles.dropdownContainer}>
-              <View style={styles.searchContainer}>
-                <MaterialIcons name="search" size={20} color="#ccc" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search language"
-                  placeholderTextColor="#ccc"
-                  value={searchToLanguage}
-                  onChangeText={handleSearchToLanguage}
-                />
-              </View>
-              <ScrollView style={styles.dropdown}>
-                {filteredLanguages.map(item => (
-                  <TouchableOpacity key={item.language} onPress={() => { setToLanguage(item.language); setShowToDropdown(false); }}>
-                    <Text style={styles.dropdownItem}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-        </View>
-        <View style={styles.translationBox}>
-          <BlurView intensity={15} style={styles.blur}>
-            <TextInput
-              style={styles.inputTranslation}
-              placeholder="Type or Push Mic to Translate"
-              placeholderTextColor="#A7CCD6"
-              value={inputText}
-              onChangeText={setInputText}
-            />
-            <TouchableOpacity onPress={translateText} style={styles.translateButton}>
-              <Text style={styles.translateButtonText}>Translate</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ImageBackground
+        source={require('../../EasySpeak/assets/background/backgroundone.png')}
+        style={styles.backgroundImage}
+      >
+        <View style={styles.container}>
+          <TopHeaderNav />
+          <View style={styles.appNameContainer}>
+            <Text style={styles.appNameHeader}>EasySpeak</Text>
+          </View>
+          <View style={styles.languagesContainer}>
+            <TouchableOpacity
+              style={styles.translateLanguageButton}
+              onPress={() => setShowFromDropdown(!showFromDropdown)}
+            >
+              <Text style={styles.languageButtonText}>{getLanguageName(fromLanguage)}</Text>
+              <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
             </TouchableOpacity>
-            {translatedText ? (
-              <View style={styles.translatedTextContainer}>
-                <Text style={styles.translatedText}>{translatedText}</Text>
+            {showFromDropdown && (
+              <View style={styles.dropdownContainer}>
+                <View style={styles.searchContainer}>
+                  <MaterialIcons name="search" size={20} color="#ccc" />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search language"
+                    placeholderTextColor="#ccc"
+                    value={searchFromLanguage}
+                    onChangeText={handleSearchFromLanguage}
+                  />
+                </View>
+                <ScrollView style={styles.dropdown}>
+                  {filteredLanguages.map(item => (
+                    <TouchableOpacity key={item.language} onPress={() => { setFromLanguage(item.language); setShowFromDropdown(false); }}>
+                      <Text style={styles.dropdownItem}>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
-            ) : null}
-          </BlurView>
+            )}
+            <TouchableOpacity onPress={swapLanguages}>
+              <MaterialIcons name="swap-horiz" size={30} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.translateLanguageButton}
+              onPress={() => setShowToDropdown(!showToDropdown)}
+            >
+              <Text style={styles.languageButtonText}>{getLanguageName(toLanguage)}</Text>
+              <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
+            </TouchableOpacity>
+            {showToDropdown && (
+              <View style={styles.dropdownContainer}>
+                <View style={styles.searchContainer}>
+                  <MaterialIcons name="search" size={20} color="#ccc" />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search language"
+                    placeholderTextColor="#ccc"
+                    value={searchToLanguage}
+                    onChangeText={handleSearchToLanguage}
+                  />
+                </View>
+                <ScrollView style={styles.dropdown}>
+                  {filteredLanguages.map(item => (
+                    <TouchableOpacity key={item.language} onPress={() => { setToLanguage(item.language); setShowToDropdown(false); }}>
+                      <Text style={styles.dropdownItem}>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+          <View style={styles.translationBox}>
+            <BlurView intensity={15} style={styles.blur}>
+              <View style={styles.translationContentContainer}>
+                <TextInput
+                  style={styles.inputTranslation}
+                  placeholder="Type or Push Mic to Translate"
+                  placeholderTextColor="#A7CCD6"
+                  value={inputText}
+                  onChangeText={setInputText}
+                  multiline={true}
+                />
+                <TouchableOpacity onPress={translateText} style={styles.translateButton}>
+                  <Text style={styles.translateButtonText}>Translate</Text>
+                </TouchableOpacity>
+              </View>
+              {translatedText ? (
+                <View style={styles.translatedTextContainer}>
+                  <Text style={styles.translatedText}>{translatedText}</Text>
+                  <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
+                    <MaterialIcons name="star" color="white" size={24} />
+                    <Text style={styles.favoriteButtonText}>Favorite</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+            </BlurView>
+          </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </TouchableWithoutFeedback>
   );
 };
+
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -204,7 +247,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 50,
   },
-  
   appNameContainer: {
     width: '100%',
     alignItems: 'center',
@@ -215,77 +257,37 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
   },
-  translationBox: {
-    width: '100%',
-    height: 590,
-    borderWidth: 0.2,
-    borderColor: 'rgba(60, 60, 60, 0.4)',
-    borderRadius: 25,
-    marginTop: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    position: 'relative',
-    zIndex: 1,
-  },
-  blur: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 25,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  inputTranslation: {
-    color: '#A7CCD6',
-    fontSize: 20,
-    fontWeight: '600',
-    width: '100%',
-    top: -220
-  },
-  translateButton: {
-    marginTop: 20,
-    backgroundColor: '#2CB5DA',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  translateButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  translatedTextContainer: {
-    marginTop: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 10,
-    borderRadius: 10,
-  },
-  translatedText: {
-    color: '#A7CCD6',
-    fontSize: 18,
+  languagesContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 10,
+    zIndex: 20,
   },
   translateLanguageButton: {
     backgroundColor: "#297386",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-    marginHorizontal: 5, // Add spacing between buttons
+    marginHorizontal: 5,
     flexDirection: 'row',
     justifyContent: "center",
     gap: 5,
     alignItems: 'center',
-    zIndex: 30, // Ensure the button stays in front
+    zIndex: 30,
   },
   languageButtonText: {
     color: "white",
     fontSize: 16,
   },
   dropdownContainer: {
-    maxHeight: 300, // Limit the height of the dropdown
+    maxHeight: 300,
     width: '90%',
     position: 'absolute',
     top: 50,
     zIndex: 30,
-    backgroundColor: '#0a0f0e', // Ensure it stays in front
+    backgroundColor: '#0a0f0e',
     borderRadius: 10,
     alignSelf: 'center',
   },
@@ -315,31 +317,82 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     color: '#ecf0ef'
   },
-  languagesContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-    gap: 10,
-    zIndex: 20,
-  },
-  languagesTopContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 10,
-    gap: 10,
-    zIndex: 20,
-    position: 'absolute',
-    top: 100,
+  translationBox: {
     width: '100%',
-    paddingHorizontal: 10,
+    height: 590,
+    borderWidth: 0.2,
+    borderColor: 'rgba(60, 60, 60, 0.4)',
+    borderRadius: 25,
+    marginTop: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    position: 'relative',
+    zIndex: 1,
   },
-  languageTopButtonText: {
-    color: "white",
+  translationContentContainer: {
+    width: '100%',
+    flexDirection: 'column'
+  },
+  blur: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 25,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  inputTranslation: {
+    color: '#A7CCD6',
+    fontSize: 20,
+    fontWeight: '600',
+    width: '100%',
+    top: -160,
+  },
+  translateButton: {
+    width: 120,
+    height: 50,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#2CB5DA',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    top: -160,
+
+  },
+  translateButtonText: {
+    color: 'white',
     fontSize: 16,
   },
+  translatedTextContainer: {
+    // marginTop: 20,
+    // backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // padding: 10,
+    // borderRadius: 10,
+    top: -140,
+
+  },
+  translatedText: {
+    color: '#A7CCD6',
+    fontSize: 18,
+  },
+  favoriteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    backgroundColor: '#297386',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  favoriteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    marginLeft: 10,
+  },
 });
+
 
 export default HomeScreen;

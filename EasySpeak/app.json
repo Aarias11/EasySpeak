@@ -9,17 +9,21 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#131313"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.easyspeak.app"
+      "bundleIdentifier": "com.easyspeak.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app uses the microphone to record your speech."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#131313"
       },
+      "permissions": ["RECORD_AUDIO"],
       "package": "com.easyspeak.app"
     },
     "web": {

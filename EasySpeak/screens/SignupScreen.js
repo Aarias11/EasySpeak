@@ -31,7 +31,7 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require("../../EasySpeak/assets/background/background.png")}
+      source={require("../../EasySpeak/assets/background/backgroundone.png")}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>
