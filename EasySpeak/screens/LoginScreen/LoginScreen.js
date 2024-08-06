@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
-import { auth } from '../firebase';
+import { auth } from '../../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { MaterialIcons } from '@expo/vector-icons';
+import styles from './LoginScreen.styles'
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require("../../EasySpeak/assets/background/backgroundone.png")}
+      source={require("../../assets/background/backgroundone.png")}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>
@@ -67,68 +68,6 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  headerText: {
-    fontSize: 32,
-    color: 'white',
-    marginBottom: 30,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: 'rgba(68, 68, 68, 0.25)',
-    borderRadius: 10,
-    marginBottom: 15,
-    paddingLeft: 10,
-  },
-  input: {
-    flex: 1,
-    padding: 15,
-    color: '#A7CCD6',
-  },
-  icon: {
-    padding: 10,
-  },
-  button: {
-    width: '100%',
-    backgroundColor: '#2CB5DA',
-    borderRadius: 10,
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-  },
-  signupTextContainer: {
-    flexDirection: 'row',
-    marginTop: 20,
-  },
-  signupText: {
-    color: '#A7CCD6',
-  },
-  signupLink: {
-    color: '#2CB5DA',
-    marginLeft: 5,
-  },
-  logoHeader: {
-    top: -40,
-    color: '#A7CCD6',
-    fontSize: 42,
-    fontWeight: '700'
-  }
-});
+
 
 export default LoginScreen;
