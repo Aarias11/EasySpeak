@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 import axios from 'axios';
 import { Buffer } from 'buffer';
-import { auth } from './firebase'; // Make sure you have this import
+import { auth } from './firebase'; // Ensure you have this import
 
 // Import your screen components
 import HomeScreen from './screens/HomeScreen/HomeScreen';
@@ -32,21 +32,51 @@ function CustomTabBarButton({ children, onPress }) {
   );
 }
 
+const screenOptions = {
+  headerShown: false,
+  cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
+  cardStyle: { backgroundColor: 'black' },
+};
+
 function HomeStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="Account" component={AccountScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function ConversationStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="Conversation" component={ConversationScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function CameraStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="Camera" component={CameraScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function FavoritesStack() {
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="Favorites" component={FavoritesScreen} />
     </Stack.Navigator>
   );
 }
 
 function AuthStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Signup" component={SignupScreen} options={{ headerShown: false }} />
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
     </Stack.Navigator>
   );
 }
@@ -125,7 +155,7 @@ export default function App() {
   };
 
   const sendAudioToGoogle = async (base64) => {
-    const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk';
+    const apiKey = 'YOUR_GOOGLE_CLOUD_API_KEY';
     const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
 
     const body = {
@@ -162,14 +192,13 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer >
+    <NavigationContainer>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'black' } }}>
         {user ? (
           <Stack.Screen name="Main">
             {() => (
               <Tab.Navigator
-              sceneContainerStyle={{backgroundColor: 'black'}}
                 screenOptions={{
                   tabBarShowLabel: false,
                   tabBarStyle: {
@@ -183,7 +212,9 @@ export default function App() {
                     borderTopWidth: 1,
                     borderTopColor: 'rgba(42, 122, 142, 0.5)',
                   },
+                  cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS, // Smooth transition for tab screens
                 }}
+                sceneContainerStyle={{ backgroundColor: 'black' }}
               >
                 <Tab.Screen
                   name="Home"
@@ -197,7 +228,7 @@ export default function App() {
                 />
                 <Tab.Screen
                   name="Conversation"
-                  component={ConversationScreen}
+                  component={ConversationStack}
                   options={{
                     tabBarIcon: ({ color, size }) => (
                       <MaterialIcons name="people" color={'#297386'} size={30} />
@@ -228,7 +259,7 @@ export default function App() {
                 />
                 <Tab.Screen
                   name="Camera"
-                  component={CameraScreen}
+                  component={CameraStack}
                   options={{
                     tabBarIcon: ({ color, size }) => (
                       <MaterialIcons name="camera-alt" color={'#297386'} size={30} />
@@ -238,7 +269,7 @@ export default function App() {
                 />
                 <Tab.Screen
                   name="Favorites"
-                  component={FavoritesScreen}
+                  component={FavoritesStack}
                   options={{
                     tabBarIcon: ({ color, size }) => (
                       <MaterialIcons name="star" color={'#297386'} size={30} />

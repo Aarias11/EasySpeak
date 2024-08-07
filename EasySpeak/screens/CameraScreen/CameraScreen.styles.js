@@ -127,6 +127,7 @@ export default StyleSheet.create({
       gap: 5,
       alignItems: 'center',
       zIndex: 10, // Ensure it stays in front of other elements
+      
     },
     translateTopLanguageButton: {
       backgroundColor: '#297386',
@@ -138,6 +139,8 @@ export default StyleSheet.create({
       justifyContent: 'center',
       gap: 5,
       alignItems: 'center',
+      height:45
+
     },
     languageButtonText: {
       color: 'white',

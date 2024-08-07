@@ -17,7 +17,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { auth, db, doc, getDoc } from "../../firebase";
 import TopHeaderNav from "../../components/TopHeaderNav";
-import styles from './ConversationScreen.styles'
+import styles from './ConversationScreen.styles';
 
 const ChatBubble = ({
   isRight,
@@ -90,13 +90,6 @@ const ChatBubble = ({
     </TouchableOpacity>
   );
 };
-
-
-
-
-
-
-
 
 const ConversationScreen = ({ navigation }) => {
   const [fromLanguage, setFromLanguage] = useState("en"); // Default "from" language is English
@@ -221,14 +214,13 @@ const ConversationScreen = ({ navigation }) => {
     }
   };
 
-
   const swapLanguages = () => {
     setFromLanguage(toLanguage);
     setToLanguage(fromLanguage);
     // setInputText('')
     // setTranslatedText('');
 
-  }
+  };
 
   const scrollToInput = (inputRef) => {
     inputRef.current.measureLayout(
@@ -371,14 +363,4 @@ const ConversationScreen = ({ navigation }) => {
   );
 };
 
-
 export default ConversationScreen;
-
-
-
-
-
-
-
-
-

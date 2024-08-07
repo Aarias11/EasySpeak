@@ -37,6 +37,7 @@ export default StyleSheet.create({
       gap: 5,
       alignItems: 'center',
       zIndex: 30,
+      height:45
     },
     languageButtonText: {
       color: "white",
