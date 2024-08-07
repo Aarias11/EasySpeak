@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ActivityIndicator, ImageBackground } from 'reac
 const SplashScreen = () => {
   return (
     <ImageBackground
-      source={require("../../EasySpeak/assets/background/backgroundone.png")}
+      source={require("../../assets/background/backgroundone.png")}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>

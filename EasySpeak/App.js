@@ -19,7 +19,7 @@ import CameraScreen from './screens/CameraScreen/CameraScreen';
 import ConversationScreen from './screens/ConversationScreen/ConversationScreen';
 import LoginScreen from './screens/LoginScreen/LoginScreen';
 import SignupScreen from './screens/SignupScreen/SignupScreen';
-import SplashScreen from '../EasySpeak/components/SplashScreen';
+import SplashScreen from './screens/SplashScreen/SplashScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -284,7 +284,7 @@ export default function App() {
         {user ? (
           <Stack.Screen name="Main" component={MainTabNavigator} />
         ) : (
-          <Stack.Screen name="Auth" component={AuthStack} />
+          <Stack.Screen name="Auth" component={AuthStack}  />
         )}
       </Stack.Navigator>
     </NavigationContainer>
