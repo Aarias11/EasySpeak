@@ -55,8 +55,10 @@ export default StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "rgba(68, 68, 68, 0.35)",
-    width: "80%",
+    width: "85%",
+    height: 'auto',
     marginVertical: 3,
+    flexWrap: 'wrap'
   },
   chatCardRight: {
     alignSelf: "flex-end",
@@ -99,6 +101,8 @@ export default StyleSheet.create({
     height: '100%',
     marginTop: 10,
     left: 20,
+    flexWrap: 'wrap'
+
   },
   sendButton: {
     width: "15%",

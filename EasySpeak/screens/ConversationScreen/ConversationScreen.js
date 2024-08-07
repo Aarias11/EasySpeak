@@ -25,8 +25,6 @@ const ChatBubble = ({
   onSend,
   conversation,
   scrollToInput,
-  fromLanguage,
-  toLanguage,
   fromLanguageCode,
   toLanguageCode,
 }) => {
@@ -149,8 +147,8 @@ const ChatBubble = ({
 };
 
 const ConversationScreen = ({ navigation }) => {
-  const [fromLanguage, setFromLanguage] = useState("en-US"); // Default "from" language is English
-  const [toLanguage, setToLanguage] = useState("es-ES"); // Default "to" language is Spanish
+  const [fromLanguage, setFromLanguage] = useState("en"); // Default "from" language is English
+  const [toLanguage, setToLanguage] = useState("es"); // Default "to" language is Spanish
   const [languages, setLanguages] = useState([]);
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown] = useState(false);
@@ -272,8 +270,10 @@ const ConversationScreen = ({ navigation }) => {
   };
 
   const swapLanguages = () => {
-    setFromLanguage(toLanguage);
-    setToLanguage(fromLanguage);
+    setFromLanguage((prevFrom) => {
+      setToLanguage(prevFrom);
+      return toLanguage;
+    });
   };
 
   const scrollToInput = (inputRef) => {
@@ -392,8 +392,6 @@ const ConversationScreen = ({ navigation }) => {
               conversation={conversation}
               isRight={!conversation.isUser}
               scrollToInput={scrollToInput}
-              fromLanguage={getLanguageName(fromLanguage)}
-              toLanguage={getLanguageName(toLanguage)}
               fromLanguageCode={fromLanguage}
               toLanguageCode={toLanguage}
             />
@@ -404,8 +402,6 @@ const ConversationScreen = ({ navigation }) => {
               placeholder="Type your message here"
               isRight={false}
               scrollToInput={scrollToInput}
-              fromLanguage={getLanguageName(fromLanguage)}
-              toLanguage={getLanguageName(toLanguage)}
               fromLanguageCode={fromLanguage}
               toLanguageCode={toLanguage}
             />
@@ -416,8 +412,6 @@ const ConversationScreen = ({ navigation }) => {
               placeholder="Type response here"
               isRight={true}
               scrollToInput={scrollToInput}
-              fromLanguage={getLanguageName(fromLanguage)}
-              toLanguage={getLanguageName(toLanguage)}
               fromLanguageCode={fromLanguage}
               toLanguageCode={toLanguage}
             />

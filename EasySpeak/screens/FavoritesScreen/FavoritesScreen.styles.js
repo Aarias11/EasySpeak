@@ -42,6 +42,11 @@ export default StyleSheet.create({
       justifyContent: 'space-between',
       padding: 5
     },
+    textWithIcon: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 5,
+    },
     favoritesText: {
       color: "#A7CCD6",
       fontSize: 18,
@@ -58,5 +63,8 @@ export default StyleSheet.create({
     favoriteTextContainer: {
       width: '85%',
       flexDirection: 'column'
-    }
+    },
+    voiceIcon: {
+      marginRight: 10,
+    },
   });

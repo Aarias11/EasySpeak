@@ -9,13 +9,16 @@ import {
   Alert
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { collection, getDocs, deleteDoc, doc, query, where } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query } from "firebase/firestore";
+import { Audio } from "expo-av";
+import axios from "axios";
 import { auth, db } from "../../firebase"; // Adjust the import as per your project structure
 import TopHeaderNav from "../../components/TopHeaderNav";
-import styles from './FavoritesScreen.styles'
+import styles from './FavoritesScreen.styles';
 
 const FavoritesScreen = ({ navigation, route }) => {
   const [favorites, setFavorites] = useState([]);
+  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
 
   useEffect(() => {
     fetchFavorites();
@@ -48,12 +51,34 @@ const FavoritesScreen = ({ navigation, route }) => {
     }
   };
 
+  const speakTranslation = async (text, languageCode) => {
+    if (text) {
+      const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+      const body = {
+        input: { text },
+        voice: { languageCode },
+        audioConfig: { audioEncoding: 'MP3' },
+      };
+
+      try {
+        const response = await axios.post(url, body);
+        const audioContent = response.data.audioContent;
+        const { sound } = await Audio.Sound.createAsync({ uri: `data:audio/mp3;base64,${audioContent}` });
+        await sound.playAsync();
+      } catch (error) {
+        console.error('Error synthesizing speech:', error.response ? error.response.data : error.message);
+        Alert.alert("Error", "An error occurred while synthesizing speech.");
+      }
+    } else {
+      Alert.alert('Error', 'No translation available to speak');
+    }
+  };
+
   return (
     <ImageBackground
       source={require("../../assets/background/backgroundone.png")}
       style={styles.backgroundImage}
       resizeMode="cover"
-
     >
       <View style={styles.container}>
         <TopHeaderNav />
@@ -65,8 +90,18 @@ const FavoritesScreen = ({ navigation, route }) => {
             <View key={favorite.id} style={styles.favoritesCard}>
               <View style={styles.favoriteContent}>
                 <View style={styles.favoriteTextContainer}>
-                  <Text style={styles.favoritesText}>{favorite.originalText}</Text>
-                  <Text style={styles.translatedText}>{favorite.translatedText}</Text>
+                  <View style={styles.textWithIcon}>
+                    <TouchableOpacity onPress={() => speakTranslation(favorite.originalText, 'en-US')}>
+                      <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIcon} />
+                    </TouchableOpacity>
+                    <Text style={styles.favoritesText}>{favorite.originalText}</Text>
+                  </View>
+                  <View style={styles.textWithIcon}>
+                    <TouchableOpacity onPress={() => speakTranslation(favorite.translatedText, 'es-ES')}>
+                      <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIcon} />
+                    </TouchableOpacity>
+                    <Text style={styles.translatedText}>{favorite.translatedText}</Text>
+                  </View>
                 </View>
                 <TouchableOpacity onPress={() => removeFavorite(favorite.id)}>
                   <MaterialIcons name="star" color={"#297386"} size={24} style={styles.favoriteIcon} />
@@ -79,7 +114,5 @@ const FavoritesScreen = ({ navigation, route }) => {
     </ImageBackground>
   );
 };
-
-
 
 export default FavoritesScreen;
