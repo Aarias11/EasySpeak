@@ -10,11 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  Image,
   Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
+import { Audio } from "expo-av";
 import { auth, db, doc, getDoc } from "../../firebase";
 import TopHeaderNav from "../../components/TopHeaderNav";
 import styles from './ConversationScreen.styles';
@@ -25,16 +25,44 @@ const ChatBubble = ({
   onSend,
   conversation,
   scrollToInput,
+  fromLanguage,
+  toLanguage,
+  fromLanguageCode,
+  toLanguageCode,
 }) => {
   const [text, setText] = useState("");
   const [inputHeight, setInputHeight] = useState(50);
   const inputRef = useRef(null);
+  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
 
   const handleSend = () => {
     if (text.trim()) {
       onSend(text);
       setText("");
       setInputHeight(50); // Reset input height after sending
+    }
+  };
+
+  const speakTranslation = async (text, languageCode) => {
+    if (text) {
+      const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+      const body = {
+        input: { text },
+        voice: { languageCode },
+        audioConfig: { audioEncoding: 'MP3' },
+      };
+
+      try {
+        const response = await axios.post(url, body);
+        const audioContent = response.data.audioContent;
+        const { sound } = await Audio.Sound.createAsync({ uri: `data:audio/mp3;base64,${audioContent}` });
+        await sound.playAsync();
+      } catch (error) {
+        console.error('Error synthesizing speech:', error.response ? error.response.data : error.message);
+        Alert.alert("Error", "An error occurred while synthesizing speech.");
+      }
+    } else {
+      Alert.alert('Error', 'No translation available to speak');
     }
   };
 
@@ -65,8 +93,37 @@ const ChatBubble = ({
     >
       {conversation ? (
         <View style={styles.translatedCard}>
-          <Text style={styles.chatText}>{conversation.original}</Text>
-          <Text style={styles.translationText}>{conversation.translated}</Text>
+          {isRight ? (
+            <>
+              <View style={styles.chatTextContainer}>
+                <TouchableOpacity onPress={() => speakTranslation(conversation.original, toLanguageCode)}>
+                  <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconRight} />
+                </TouchableOpacity>
+                <Text style={styles.chatText}>{conversation.original}</Text>
+              </View>
+              <View style={styles.chatTextContainer}>
+                <TouchableOpacity onPress={() => speakTranslation(conversation.translated, fromLanguageCode)}>
+                  <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconRight} />
+                </TouchableOpacity>
+                <Text style={styles.translationText}>{conversation.translated}</Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.chatTextContainer}>
+                <TouchableOpacity onPress={() => speakTranslation(conversation.original, fromLanguageCode)}>
+                  <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconLeft} />
+                </TouchableOpacity>
+                <Text style={styles.chatText}>{conversation.original}</Text>
+              </View>
+              <View style={styles.chatTextContainer}>
+                <TouchableOpacity onPress={() => speakTranslation(conversation.translated, toLanguageCode)}>
+                  <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconLeft} />
+                </TouchableOpacity>
+                <Text style={styles.translationText}>{conversation.translated}</Text>
+              </View>
+            </>
+          )}
         </View>
       ) : (
         <View style={styles.cardInputContainer}>
@@ -92,8 +149,8 @@ const ChatBubble = ({
 };
 
 const ConversationScreen = ({ navigation }) => {
-  const [fromLanguage, setFromLanguage] = useState("en"); // Default "from" language is English
-  const [toLanguage, setToLanguage] = useState("es"); // Default "to" language is Spanish
+  const [fromLanguage, setFromLanguage] = useState("en-US"); // Default "from" language is English
+  const [toLanguage, setToLanguage] = useState("es-ES"); // Default "to" language is Spanish
   const [languages, setLanguages] = useState([]);
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown] = useState(false);
@@ -217,9 +274,6 @@ const ConversationScreen = ({ navigation }) => {
   const swapLanguages = () => {
     setFromLanguage(toLanguage);
     setToLanguage(fromLanguage);
-    // setInputText('')
-    // setTranslatedText('');
-
   };
 
   const scrollToInput = (inputRef) => {
@@ -287,9 +341,8 @@ const ConversationScreen = ({ navigation }) => {
               </ScrollView>
             </View>
           )}
-            <TouchableOpacity onPress={swapLanguages}>
-
-          <MaterialIcons name="swap-horiz" size={30} color="white" />
+          <TouchableOpacity onPress={swapLanguages}>
+            <MaterialIcons name="swap-horiz" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.translateLanguageButton}
@@ -339,6 +392,10 @@ const ConversationScreen = ({ navigation }) => {
               conversation={conversation}
               isRight={!conversation.isUser}
               scrollToInput={scrollToInput}
+              fromLanguage={getLanguageName(fromLanguage)}
+              toLanguage={getLanguageName(toLanguage)}
+              fromLanguageCode={fromLanguage}
+              toLanguageCode={toLanguage}
             />
           ))}
           {showUserInput && (
@@ -347,6 +404,10 @@ const ConversationScreen = ({ navigation }) => {
               placeholder="Type your message here"
               isRight={false}
               scrollToInput={scrollToInput}
+              fromLanguage={getLanguageName(fromLanguage)}
+              toLanguage={getLanguageName(toLanguage)}
+              fromLanguageCode={fromLanguage}
+              toLanguageCode={toLanguage}
             />
           )}
           {showResponderInput && (
@@ -355,6 +416,10 @@ const ConversationScreen = ({ navigation }) => {
               placeholder="Type response here"
               isRight={true}
               scrollToInput={scrollToInput}
+              fromLanguage={getLanguageName(fromLanguage)}
+              toLanguage={getLanguageName(toLanguage)}
+              fromLanguageCode={fromLanguage}
+              toLanguageCode={toLanguage}
             />
           )}
         </ScrollView>

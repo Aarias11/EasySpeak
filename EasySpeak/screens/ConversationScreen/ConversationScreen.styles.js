@@ -67,6 +67,16 @@ export default StyleSheet.create({
     fontSize: 18,
     marginBottom: 5,
   },
+  chatTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  voiceIconRight: {
+    marginLeft: 10,
+  },
+  voiceIconLeft: {
+    marginRight: 10,
+  },
   translatedCard: {
     flexDirection: "column",
     justifyContent: "center",

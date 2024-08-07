@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView, Alert, Keyboard, TouchableWithoutFeedback, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import axios from 'axios';
+import { Audio } from 'expo-av'; // Make sure this import is present
 import { auth, db, collection, addDoc, doc, getDoc } from '../../firebase';
 import TopHeaderNav from '../../components/TopHeaderNav';
 import styles from './HomeScreen.styles';
@@ -134,6 +135,29 @@ const HomeScreen = ({ navigation }) => {
     setTranslatedText('');
   };
 
+  const speakTranslation = async () => {
+    if (translatedText) {
+      const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+      const body = {
+        input: { text: translatedText },
+        voice: { languageCode: toLanguage },
+        audioConfig: { audioEncoding: 'MP3' },
+      };
+
+      try {
+        const response = await axios.post(url, body);
+        const audioContent = response.data.audioContent;
+
+        const { sound } = await Audio.Sound.createAsync({ uri: `data:audio/mp3;base64,${audioContent}` });
+        await sound.playAsync();
+      } catch (error) {
+        console.error('Error synthesizing speech:', error.response ? error.response.data : error.message);
+      }
+    } else {
+      Alert.alert('Error', 'No translation available to speak');
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ImageBackground
@@ -229,6 +253,10 @@ const HomeScreen = ({ navigation }) => {
                     <MaterialIcons name="star" color="white" size={24} />
                     <Text style={styles.favoriteButtonText}>Favorite</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
+                    <MaterialIcons name="volume-up" color="white" size={24} />
+                    <Text style={styles.speakButtonText}>Speak</Text>
+                  </TouchableOpacity>
                 </View>
               ) : null}
             </BlurView>
@@ -239,11 +267,6 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-
-
-
-
-
-
-
 export default HomeScreen;
+
+
