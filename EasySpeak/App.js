@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators, TransitionPresets } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
@@ -32,7 +32,7 @@ function CustomTabBarButton({ children, onPress }) {
   );
 }
 
-const screenOptions = {
+const stackScreenOptions = {
   headerShown: false,
   cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
   cardStyle: { backgroundColor: 'black' },
@@ -40,8 +40,8 @@ const screenOptions = {
 
 function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen name="Home" component={HomeScreen} />
+    <Stack.Navigator screenOptions={stackScreenOptions}>
+      <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Account" component={AccountScreen} />
     </Stack.Navigator>
@@ -50,7 +50,7 @@ function HomeStack() {
 
 function ConversationStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="Conversation" component={ConversationScreen} />
     </Stack.Navigator>
   );
@@ -58,7 +58,7 @@ function ConversationStack() {
 
 function CameraStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="Camera" component={CameraScreen} />
     </Stack.Navigator>
   );
@@ -66,7 +66,7 @@ function CameraStack() {
 
 function FavoritesStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="Favorites" component={FavoritesScreen} />
     </Stack.Navigator>
   );
@@ -74,10 +74,96 @@ function FavoritesStack() {
 
 function AuthStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
     </Stack.Navigator>
+  );
+}
+
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          position: 'absolute',
+          bottom: -10,
+          backgroundColor: 'rgba(42, 122, 142, 0.1)',
+          borderRadius: 15,
+          width: '100%',
+          height: 90,
+          zIndex: 0,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(42, 122, 142, 0.5)',
+        },
+        tabBarIconStyle: { size: 30 },
+        ...TransitionPresets.SlideFromRightIOS, // Apply the transition preset for tab screens
+      })}
+      sceneContainerStyle={{ backgroundColor: 'black' }}
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeStack}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="home" color={'#297386'} size={30} />
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="ConversationTab"
+        component={ConversationStack}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="people" color={'#297386'} size={30} />
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="ActionButton"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="mic" color="white" size={30} />
+          ),
+          tabBarButton: (props) => (
+            <CustomTabBarButton {...props}>
+              <MaterialIcons name="mic" color="white" size={30} />
+            </CustomTabBarButton>
+          ),
+          headerShown: false,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            handleMicPress();
+          },
+        }}
+      />
+      <Tab.Screen
+        name="CameraTab"
+        component={CameraStack}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="camera-alt" color={'#297386'} size={30} />
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="FavoritesTab"
+        component={FavoritesStack}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="star" color={'#297386'} size={30} />
+          ),
+          headerShown: false,
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
@@ -196,90 +282,7 @@ export default function App() {
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'black' } }}>
         {user ? (
-          <Stack.Screen name="Main">
-            {() => (
-              <Tab.Navigator
-                screenOptions={{
-                  tabBarShowLabel: false,
-                  tabBarStyle: {
-                    position: 'absolute',
-                    bottom: -10,
-                    backgroundColor: 'rgba(42, 122, 142, 0.1)',
-                    borderRadius: 15,
-                    width: '100%',
-                    height: 90,
-                    zIndex: 0,
-                    borderTopWidth: 1,
-                    borderTopColor: 'rgba(42, 122, 142, 0.5)',
-                  },
-                  cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS, // Smooth transition for tab screens
-                }}
-                sceneContainerStyle={{ backgroundColor: 'black' }}
-              >
-                <Tab.Screen
-                  name="Home"
-                  component={HomeStack}
-                  options={{
-                    tabBarIcon: ({ color, size }) => (
-                      <MaterialIcons name="home" color={'#297386'} size={30} />
-                    ),
-                    headerShown: false,
-                  }}
-                />
-                <Tab.Screen
-                  name="Conversation"
-                  component={ConversationStack}
-                  options={{
-                    tabBarIcon: ({ color, size }) => (
-                      <MaterialIcons name="people" color={'#297386'} size={30} />
-                    ),
-                    headerShown: false,
-                  }}
-                />
-                <Tab.Screen
-                  name="ActionButton"
-                  component={HomeScreen}
-                  options={{
-                    tabBarIcon: ({ color, size }) => (
-                      <MaterialIcons name="mic" color="white" size={30} />
-                    ),
-                    tabBarButton: (props) => (
-                      <CustomTabBarButton {...props}>
-                        <MaterialIcons name="mic" color="white" size={30} />
-                      </CustomTabBarButton>
-                    ),
-                    headerShown: false,
-                  }}
-                  listeners={{
-                    tabPress: (e) => {
-                      e.preventDefault();
-                      handleMicPress();
-                    },
-                  }}
-                />
-                <Tab.Screen
-                  name="Camera"
-                  component={CameraStack}
-                  options={{
-                    tabBarIcon: ({ color, size }) => (
-                      <MaterialIcons name="camera-alt" color={'#297386'} size={30} />
-                    ),
-                    headerShown: false,
-                  }}
-                />
-                <Tab.Screen
-                  name="Favorites"
-                  component={FavoritesStack}
-                  options={{
-                    tabBarIcon: ({ color, size }) => (
-                      <MaterialIcons name="star" color={'#297386'} size={30} />
-                    ),
-                    headerShown: false,
-                  }}
-                />
-              </Tab.Navigator>
-            )}
-          </Stack.Screen>
+          <Stack.Screen name="Main" component={MainTabNavigator} />
         ) : (
           <Stack.Screen name="Auth" component={AuthStack} />
         )}
