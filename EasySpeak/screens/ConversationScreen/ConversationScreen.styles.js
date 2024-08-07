@@ -56,9 +56,9 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(68, 68, 68, 0.35)",
     width: "85%",
-    height: 'auto',
     marginVertical: 3,
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    padding: 15
   },
   chatCardRight: {
     alignSelf: "flex-end",
@@ -69,9 +69,10 @@ export default StyleSheet.create({
     fontSize: 18,
     marginBottom: 5,
   },
-  chatTextContainer: {
+  chatTextContainerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   voiceIconRight: {
     marginLeft: 10,
@@ -87,32 +88,54 @@ export default StyleSheet.create({
     paddingVertical: 15,
     padding: 10,
   },
-  cardInputContainer: {
+  cardInputContainerLeft: {
     width: "100%",
-    height: '100%', // Set a minimum height
     flexDirection: "row",
-    alignItems: "flex-start", // Align items at the start of the container
+    alignItems: "center", // Align items at the start of the container
     justifyContent: "space-between",
   },
   chatInput: {
     color: "#A7CCD6",
     fontSize: 18,
-    width: "89%",
-    height: '100%',
-    marginTop: 10,
-    left: 20,
-    flexWrap: 'wrap'
+    width: "85%",
 
+    flexWrap: 'wrap',
+    overflow: 'scroll',
   },
-  sendButton: {
+  sendButtonLeft: {
     width: "15%",
-    height: "100%", // Ensuring same height as input card
-    backgroundColor: "#2CB5DA",
     borderTopRightRadius: 20,
     borderBottomRightRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    left: 70
+
+
   },
+  chatTextContainerRight: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+
+  cardInputContainerRight: {
+    width: "100%",
+    flexDirection: "row-reverse",
+    alignItems: "center", // Align items at the start of the container
+    justifyContent: "space-between",
+  },
+  
+  sendButtonRight: {
+    width: "15%",
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    left: 60
+
+
+  },
+  
   translationText: {
     color: "#BBBBBB",
     fontSize: 14,
@@ -142,23 +165,20 @@ export default StyleSheet.create({
     flex: 1,
     padding: 10,
     color: "#ecf0ef",
-    fontSize: 16
-
+    fontSize: 16,
   },
   dropdown: {
     backgroundColor: "#0a0f0e",
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
-    fontSize: 16
-
+    fontSize: 16,
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
     color: "#ecf0ef",
-    fontSize: 16
-
+    fontSize: 16,
   },
   avatar: {
     width: 60,

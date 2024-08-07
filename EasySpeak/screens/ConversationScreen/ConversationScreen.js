@@ -93,7 +93,7 @@ const ChatBubble = ({
         <View style={styles.translatedCard}>
           {isRight ? (
             <>
-              <View style={styles.chatTextContainer}>
+              <View style={styles.chatTextContainerRight}>
                 <TouchableOpacity onPress={() => speakTranslation(conversation.original, toLanguageCode)}>
                   <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconRight} />
                 </TouchableOpacity>
@@ -108,13 +108,13 @@ const ChatBubble = ({
             </>
           ) : (
             <>
-              <View style={styles.chatTextContainer}>
+              <View style={styles.chatTextContainerLeft}>
                 <TouchableOpacity onPress={() => speakTranslation(conversation.original, fromLanguageCode)}>
                   <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconLeft} />
                 </TouchableOpacity>
                 <Text style={styles.chatText}>{conversation.original}</Text>
               </View>
-              <View style={styles.chatTextContainer}>
+              <View style={styles.chatTextContainerLeft}>
                 <TouchableOpacity onPress={() => speakTranslation(conversation.translated, toLanguageCode)}>
                   <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconLeft} />
                 </TouchableOpacity>
@@ -124,7 +124,7 @@ const ChatBubble = ({
           )}
         </View>
       ) : (
-        <View style={styles.cardInputContainer}>
+        <View style={isRight ? styles.cardInputContainerRight : styles.cardInputContainerLeft}>
           <TextInput
             ref={inputRef}
             style={[styles.chatInput, { height: inputHeight }]}
@@ -137,8 +137,9 @@ const ChatBubble = ({
             }
             multiline
           />
-          <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
-            <MaterialIcons name="send" color="white" size={20} />
+          <TouchableOpacity onPress={handleSend} style={isRight ? styles.sendButtonRight : styles.sendButtonLeft}>
+          <MaterialIcons name="send" color="white" size={25} style={{ transform: isRight ? [{ scaleX: -1 }] : [] }} />
+            
           </TouchableOpacity>
         </View>
       )}
