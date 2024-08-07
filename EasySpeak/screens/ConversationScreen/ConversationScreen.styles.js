@@ -22,7 +22,7 @@ export default StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 20,
     gap: 10,
     zIndex: 20, // Ensure the languages container is above other elements
   },
@@ -89,7 +89,7 @@ export default StyleSheet.create({
   },
   cardInputContainer: {
     width: "100%",
-    height: 70, // Set a minimum height
+    height: '100%', // Set a minimum height
     flexDirection: "row",
     alignItems: "flex-start", // Align items at the start of the container
     justifyContent: "space-between",
@@ -131,7 +131,7 @@ export default StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "black",
+    backgroundColor: "#0a0f0e",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderTopLeftRadius: 10,
@@ -142,17 +142,23 @@ export default StyleSheet.create({
     flex: 1,
     padding: 10,
     color: "#ecf0ef",
+    fontSize: 16
+
   },
   dropdown: {
-    backgroundColor: "black",
+    backgroundColor: "#0a0f0e",
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
+    fontSize: 16
+
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
     color: "#ecf0ef",
+    fontSize: 16
+
   },
   avatar: {
     width: 60,

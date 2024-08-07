@@ -169,6 +169,7 @@ export default StyleSheet.create({
       flex: 1,
       padding: 15,
       color: '#ecf0ef',
+      fontSize: 16
     },
     dropdown: {
       backgroundColor: '#0a0f0e',
@@ -180,6 +181,8 @@ export default StyleSheet.create({
       borderBottomWidth: 1,
       borderBottomColor: '#ccc',
       color: '#ecf0ef',
+      fontSize: 16
+
     },
     permissionContainer: {
       width: '100%',

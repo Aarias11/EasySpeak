@@ -66,7 +66,9 @@ export default StyleSheet.create({
     marginLeft: 10,
     flex: 1,
     padding: 10,
-    color: '#ecf0ef'
+    color: '#ecf0ef',
+    fontSize: 16
+
   },
   dropdown: {
     backgroundColor: '#0a0f0e',
@@ -77,7 +79,9 @@ export default StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    color: '#ecf0ef'
+    color: '#ecf0ef',
+    fontSize: 16
+
   },
   translationBox: {
     width: '100%',
