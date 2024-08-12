@@ -85,7 +85,7 @@ export default StyleSheet.create({
   },
   translationBox: {
     width: '100%',
-    height: 590,
+    height: 490,
     borderWidth: 0.2,
     borderColor: 'rgba(60, 60, 60, 0.4)',
     borderRadius: 25,
@@ -96,7 +96,8 @@ export default StyleSheet.create({
   },
   translationContentContainer: {
     width: '100%',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    paddingTop: 100
   },
   blur: {
     width: '100%',
@@ -109,7 +110,7 @@ export default StyleSheet.create({
   },
   inputTranslation: {
     color: '#A7CCD6',
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '600',
     width: '100%',
     top: -160,

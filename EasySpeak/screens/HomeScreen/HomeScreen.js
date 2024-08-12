@@ -325,85 +325,80 @@ const recordingRef = useRef(null);
               </View>
             )}
           </View>
-
+  
           <View style={styles.tabsContainer}>
-          <TouchableOpacity onPress={() => setActiveTab('text')}>
-            <Text style={[styles.tabsText, activeTab === 'text' && styles.activeTabText]}>
-              Text
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActiveTab('voice')}>
-            <Text style={[styles.tabsText, activeTab === 'voice' && styles.activeTabText]}>
-              Voice
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-
+            <TouchableOpacity onPress={() => setActiveTab('text')}>
+              <Text style={[styles.tabsText, activeTab === 'text' && styles.activeTabText]}>
+                Text
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setActiveTab('voice')}>
+              <Text style={[styles.tabsText, activeTab === 'voice' && styles.activeTabText]}>
+                Voice
+              </Text>
+            </TouchableOpacity>
+          </View>
+  
           {activeTab === 'text' ? (
-  <View style={styles.translationBox}>
-    <BlurView intensity={15} style={styles.blur}>
-      <View style={styles.translationContentContainer}>
-      <TextInput
-  style={styles.inputTranslation}
-  placeholder="Enter text to translate"
-  placeholderTextColor="rgba(167, 204, 214, 0.7)" // 70% opacity
-  value={inputText}
-  onChangeText={setInputText}
-  multiline={true}
-/>
-
-        <TouchableOpacity onPress={translateText} style={styles.translateButton}>
-          <Text style={styles.translateButtonText}>Translate</Text>
-        </TouchableOpacity>
-      </View>
-      {translatedText ? (
-        <View style={styles.translatedTextContainer}>
-          <Text style={styles.translatedText}>{translatedText}</Text>
-          <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
-            <MaterialIcons name="star" color="white" size={24} />
-            <Text style={styles.favoriteButtonText}>Favorite</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
-            <MaterialIcons name="volume-up" color="white" size={24} />
-            <Text style={styles.speakButtonText}>Speak</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-    </BlurView>
-  </View>
-) : (
-  <View style={styles.translationBox}>
-    <BlurView intensity={15} style={styles.blur}>
-      <View style={styles.translationContentContainer}>
-        <TouchableOpacity onPress={startVoiceInput} style={styles.micButton}>
-          <MaterialIcons name="mic" color="white" size={30} />
-        </TouchableOpacity>
-      </View>
-      {translatedText ? (
-        <View style={styles.translatedTextContainer}>
-          <Text style={styles.translatedText}>{translatedText}</Text>
-          <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
-            <MaterialIcons name="star" color="white" size={24} />
-            <Text style={styles.favoriteButtonText}>Favorite</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
-            <MaterialIcons name="volume-up" color="white" size={24} />
-            <Text style={styles.speakButtonText}>Speak</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-    </BlurView>
-  </View>
-)}
-
-          
-           
-          
+            <View style={styles.translationBox}>
+              <BlurView intensity={15} style={styles.blur}>
+                <View style={styles.translationContentContainer}>
+                  <TextInput
+                    style={styles.inputTranslation}
+                    placeholder="Enter text to translate"
+                    placeholderTextColor="rgba(167, 204, 214, 0.7)" // 70% opacity
+                    value={inputText}
+                    onChangeText={setInputText}
+                    multiline={true}
+                  />
+                  <TouchableOpacity onPress={translateText} style={styles.translateButton}>
+                    <Text style={styles.translateButtonText}>Translate</Text>
+                  </TouchableOpacity>
+                </View>
+                {translatedText ? (
+                  <View style={styles.translatedTextContainer}>
+                    <Text style={styles.translatedText}>{translatedText}</Text>
+                    <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
+                      <MaterialIcons name="star" color="white" size={24} />
+                      <Text style={styles.favoriteButtonText}>Favorite</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
+                      <MaterialIcons name="volume-up" color="white" size={24} />
+                      <Text style={styles.speakButtonText}>Speak</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </BlurView>
+            </View>
+          ) : (
+            <View style={styles.translationBox}>
+              <BlurView intensity={15} style={styles.blur}>
+                <View style={styles.translationContentContainer}>
+                  <TouchableOpacity onPress={startVoiceInput} style={styles.micButton}>
+                    <MaterialIcons name="mic" color="white" size={30} />
+                  </TouchableOpacity>
+                </View>
+                {translatedText ? (
+                  <View style={styles.translatedTextContainer}>
+                    <Text style={styles.translatedText}>{translatedText}</Text>
+                    <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
+                      <MaterialIcons name="star" color="white" size={24} />
+                      <Text style={styles.favoriteButtonText}>Favorite</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
+                      <MaterialIcons name="volume-up" color="white" size={24} />
+                      <Text style={styles.speakButtonText}>Speak</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </BlurView>
+            </View>
+          )}
         </View>
       </ImageBackground>
     </TouchableWithoutFeedback>
   );
+  
 };
 
 export default HomeScreen;
