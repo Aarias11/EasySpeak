@@ -28,9 +28,16 @@ const AccountScreen = ({ navigation }) => {
   const [modalContent, setModalContent] = useState("");
   const [avatar, setAvatar] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     fetchUserProfile();
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) {
+        setEmail(user.email);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const fetchUserProfile = async () => {
@@ -180,7 +187,7 @@ const AccountScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.emailContainer}>
-          <Text style={styles.emailHeader}>johndoe11@example.com</Text>
+          <Text style={styles.emailHeader}>{email}</Text>
         </View>
         <View style={styles.editProfileContainer}>
           <TouchableOpacity
@@ -255,9 +262,5 @@ const AccountScreen = ({ navigation }) => {
     </ImageBackground>
   );
 };
-
-
-
-
 
 export default AccountScreen;

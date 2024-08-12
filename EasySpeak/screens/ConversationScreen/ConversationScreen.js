@@ -11,6 +11,7 @@ import {
   Platform,
   Keyboard,
   Alert,
+  findNodeHandle,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
@@ -99,7 +100,7 @@ const ChatBubble = ({
                 </TouchableOpacity>
                 <Text style={styles.chatText}>{conversation.original}</Text>
               </View>
-              <View style={styles.chatTextContainer}>
+              <View style={styles.chatTextContainerRight}>
                 <TouchableOpacity onPress={() => speakTranslation(conversation.translated, fromLanguageCode)}>
                   <MaterialIcons name="volume-up" size={24} color="#A7CCD6" style={styles.voiceIconRight} />
                 </TouchableOpacity>
@@ -138,8 +139,7 @@ const ChatBubble = ({
             multiline
           />
           <TouchableOpacity onPress={handleSend} style={isRight ? styles.sendButtonRight : styles.sendButtonLeft}>
-          <MaterialIcons name="send" color="white" size={25} style={{ transform: isRight ? [{ scaleX: -1 }] : [] }} />
-            
+            <MaterialIcons name="send" color="white" size={25} style={{ transform: isRight ? [{ scaleX: -1 }] : [] }} />
           </TouchableOpacity>
         </View>
       )}
@@ -278,12 +278,14 @@ const ConversationScreen = ({ navigation }) => {
   };
 
   const scrollToInput = (inputRef) => {
-    inputRef.current.measureLayout(
-      scrollViewRef.current.getScrollResponder(),
-      (x, y) => {
-        scrollViewRef.current.scrollTo({ x: 0, y: y, animated: true });
-      }
-    );
+    if (inputRef.current && scrollViewRef.current) {
+      inputRef.current.measureLayout(
+        findNodeHandle(scrollViewRef.current),
+        (x, y) => {
+          scrollViewRef.current.scrollTo({ x: 0, y: y, animated: true });
+        }
+      );
+    }
   };
 
   return (

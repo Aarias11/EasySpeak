@@ -4,7 +4,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
-import styles from './CameraScreen.styles'
+import { Audio } from 'expo-av';
+import styles from './CameraScreen.styles';
 
 const CameraScreen = ({ navigation }) => {
   const [facing, setFacing] = useState('back');
@@ -26,8 +27,10 @@ const CameraScreen = ({ navigation }) => {
   const [searchToLanguage, setSearchToLanguage] = useState('');
   const translationSlideAnim = useRef(new Animated.Value(0)).current;
   const pan = useRef(new Animated.ValueXY()).current;
+  const [isPlaying, setIsPlaying] = useState(false);
+  const soundRef = useRef(null);
 
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
+  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();
@@ -210,119 +213,158 @@ const CameraScreen = ({ navigation }) => {
     setTranslatedText('');
   }
 
-  return (
-    
-      <View style={styles.container}>
-        <View style={styles.languagesTopContainer}>
-          <TouchableOpacity
-            style={styles.translateTopLanguageButton}
-            onPress={() => setShowFromDropdown(!showFromDropdown)}
-          >
-            <Text style={styles.languageTopButtonText}>{getLanguageName(fromLanguage)}</Text>
-            <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
-          </TouchableOpacity>
-          {showFromDropdown && (
-            <View style={styles.dropdownContainer}>
-              <View style={styles.searchContainer}>
-                <MaterialIcons name="search" size={20} color="#ccc" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search language"
-                  placeholderTextColor="#ecf0ef"
-                  value={searchFromLanguage}
-                  onChangeText={handleSearchFromLanguage}
-                />
-              </View>
-              <ScrollView style={styles.dropdown}>
-                {filteredLanguages.map(item => (
-                  <TouchableOpacity key={item.language} onPress={() => { setFromLanguage(item.language); setShowFromDropdown(false); }}>
-                    <Text style={styles.dropdownItem}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-          
-          <TouchableOpacity onPress={swapLanguages}>
-          <MaterialIcons name="swap-horiz" size={30} color="white" />
+  const speakTranslation = async (text, languageCode) => {
+    if (soundRef.current) {
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+      setIsPlaying(false);
+      return;
+    }
 
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.translateTopLanguageButton}
-            onPress={() => setShowToDropdown(!showToDropdown)}
-          >
-            <Text style={styles.languageTopButtonText}>{getLanguageName(toLanguage)}</Text>
-            <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
-          </TouchableOpacity>
-          {showToDropdown && (
-            <View style={styles.dropdownContainer}>
-              <View style={styles.searchContainer}>
-                <MaterialIcons name="search" size={20} color="#ecf0ef" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search language"
-                  placeholderTextColor="#ecf0ef"
-                  value={searchToLanguage}
-                  onChangeText={handleSearchToLanguage}
-                />
-              </View>
-              <ScrollView style={styles.dropdown}>
-                {filteredLanguages.map(item => (
-                  <TouchableOpacity key={item.language} onPress={() => { setToLanguage(item.language); setShowToDropdown(false); }}>
-                    <Text style={styles.dropdownItem}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+    if (text) {
+      const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+      const body = {
+        input: { text },
+        voice: { languageCode },
+        audioConfig: { audioEncoding: 'MP3' },
+      };
+
+      try {
+        const response = await axios.post(url, body);
+        const audioContent = response.data.audioContent;
+        const { sound } = await Audio.Sound.createAsync({ uri: `data:audio/mp3;base64,${audioContent}` });
+        soundRef.current = sound;
+        await sound.playAsync();
+        setIsPlaying(true);
+
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.didJustFinish) {
+            setIsPlaying(false);
+            soundRef.current = null;
+          }
+        });
+      } catch (error) {
+        console.error('Error synthesizing speech:', error.response ? error.response.data : error.message);
+        Alert.alert("Error", "An error occurred while synthesizing speech.");
+      }
+    } else {
+      Alert.alert('Error', 'No translation available to speak');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.languagesTopContainer}>
+        <TouchableOpacity
+          style={styles.translateTopLanguageButton}
+          onPress={() => setShowFromDropdown(!showFromDropdown)}
+        >
+          <Text style={styles.languageTopButtonText}>{getLanguageName(fromLanguage)}</Text>
+          <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
+        </TouchableOpacity>
+        {showFromDropdown && (
+          <View style={styles.dropdownContainer}>
+            <View style={styles.searchContainer}>
+              <MaterialIcons name="search" size={20} color="#ccc" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search language"
+                placeholderTextColor="#ecf0ef"
+                value={searchFromLanguage}
+                onChangeText={handleSearchFromLanguage}
+              />
             </View>
-          )}
-        </View>
-        {permissionsGranted && (
-          <>
-            {!cameraReady && (
-              <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color="#2CB5DA" />
-              </View>
-            )}
-            <CameraView
-              style={styles.camera}
-              type={facing}
-              ref={(ref) => setCameraRef(ref)}
-              onCameraReady={() => setCameraReady(true)}
-            >
-              <View style={styles.captureContainer}>
-                <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
-                  <MaterialIcons name="camera-alt" size={30} color="#fff" />
+            <ScrollView style={styles.dropdown}>
+              {filteredLanguages.map(item => (
+                <TouchableOpacity key={item.language} onPress={() => { setFromLanguage(item.language); setShowFromDropdown(false); }}>
+                  <Text style={styles.dropdownItem}>{item.name}</Text>
                 </TouchableOpacity>
-              </View>
-            </CameraView>
-          </>
-        )}
-        {loading && (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#2CB5DA" />
+              ))}
+            </ScrollView>
           </View>
         )}
-        {!loading && translatedText && (
-          <Animated.View
-            {...panResponder.panHandlers}
-            style={[styles.translationContainer, {
-              transform: [
-                { translateY: translationSlideAnim.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) },
-                { translateX: pan.x }
-              ],
-            }]}
-          >
-            <Text style={styles.translationTitle}>Translation:</Text>
-            <ScrollView>
-              <Text style={styles.translatedText}>{translatedText}</Text>
+        <TouchableOpacity onPress={swapLanguages}>
+          <MaterialIcons name="swap-horiz" size={30} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.translateTopLanguageButton}
+          onPress={() => setShowToDropdown(!showToDropdown)}
+        >
+          <Text style={styles.languageTopButtonText}>{getLanguageName(toLanguage)}</Text>
+          <MaterialIcons name="keyboard-arrow-down" color={'white'} size={15} />
+        </TouchableOpacity>
+        {showToDropdown && (
+          <View style={styles.dropdownContainer}>
+            <View style={styles.searchContainer}>
+              <MaterialIcons name="search" size={20} color="#ecf0ef" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search language"
+                placeholderTextColor="#ecf0ef"
+                value={searchToLanguage}
+                onChangeText={handleSearchToLanguage}
+              />
+            </View>
+            <ScrollView style={styles.dropdown}>
+              {filteredLanguages.map(item => (
+                <TouchableOpacity key={item.language} onPress={() => { setToLanguage(item.language); setShowToDropdown(false); }}>
+                  <Text style={styles.dropdownItem}>{item.name}</Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
-          </Animated.View>
+          </View>
         )}
       </View>
-  
+      {permissionsGranted && (
+        <>
+          {!cameraReady && (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#2CB5DA" />
+            </View>
+          )}
+          <CameraView
+            style={styles.camera}
+            type={facing}
+            ref={(ref) => setCameraRef(ref)}
+            onCameraReady={() => setCameraReady(true)}
+          >
+            <View style={styles.captureContainer}>
+              <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
+                <MaterialIcons name="camera-alt" size={30} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+        </>
+      )}
+      {loading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#2CB5DA" />
+        </View>
+      )}
+      {!loading && translatedText && (
+        <Animated.View
+          {...panResponder.panHandlers}
+          style={[styles.translationContainer, {
+            transform: [
+              { translateY: translationSlideAnim.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) },
+              { translateX: pan.x }
+            ],
+          }]}
+        >
+          <View style={styles.translationHeader}>
+            <Text style={styles.translationTitle}>Translation:</Text>
+            <TouchableOpacity onPress={() => speakTranslation(translatedText, toLanguage)}>
+              <MaterialIcons name={isPlaying ? "pause" : "volume-up"} size={24} color="#A7CCD6" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView>
+            <Text style={styles.translatedText}>{translatedText}</Text>
+          </ScrollView>
+        </Animated.View>
+      )}
+    </View>
   );
 };
-
-
 
 export default CameraScreen;

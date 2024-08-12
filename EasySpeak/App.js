@@ -81,7 +81,92 @@ function AuthStack() {
   );
 }
 
-function MainTabNavigator() {
+const handleMicPress = async (isRecording, setIsRecording, recordingRef) => {
+  if (isRecording) {
+    await stopRecording(recordingRef, setIsRecording);
+  } else {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status === 'granted') {
+      await startRecording(recordingRef, setIsRecording);
+    } else {
+      Alert.alert('Permission denied', 'You need to grant microphone permission to use this feature.');
+    }
+  }
+  setIsRecording(!isRecording);
+};
+
+const startRecording = async (recordingRef, setIsRecording) => {
+  try {
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      playsInSilentModeIOS: true,
+    });
+
+    const recording = new Audio.Recording();
+    await recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+    await recording.startAsync();
+    recordingRef.current = recording;
+    console.log("Recording started:", recordingRef.current);
+  } catch (error) {
+    console.error("Error starting recording:", error);
+  }
+};
+
+const stopRecording = async (recordingRef, setIsRecording) => {
+  const recording = recordingRef.current;
+  if (!recording) {
+    console.error("No recording object available.");
+    return;
+  }
+
+  try {
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    console.log("Recording URI:", uri);
+
+    const base64 = await fetch(uri).then(res => res.arrayBuffer()).then(buf => Buffer.from(buf).toString('base64'));
+    console.log("Base64 audio data:", base64);
+
+    await sendAudioToGoogle(base64);
+  } catch (error) {
+    console.error("Error stopping recording:", error);
+  }
+};
+
+const sendAudioToGoogle = async (base64) => {
+  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk';
+  const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
+
+  const body = {
+    config: {
+      encoding: 'LINEAR16',
+      sampleRateHertz: 16000,
+      languageCode: 'en-US',
+    },
+    audio: {
+      content: base64,
+    },
+  };
+
+  try {
+    const response = await axios.post(url, body);
+    const { data } = response;
+    console.log("Google API response:", JSON.stringify(data, null, 2));
+
+    if (data.results && data.results.length > 0 && data.results[0].alternatives && data.results[0].alternatives.length > 0) {
+      const transcript = data.results[0].alternatives[0].transcript;
+      Alert.alert('Transcription', transcript);
+    } else {
+      console.log("No transcription alternatives found");
+      Alert.alert('Error', 'No transcription received');
+    }
+  } catch (error) {
+    console.error("Error sending audio to Google:", error);
+    Alert.alert('Error', 'Error sending audio to Google');
+  }
+};
+
+function MainTabNavigator({ handleMicPress, isRecording, setIsRecording, recordingRef }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -139,7 +224,7 @@ function MainTabNavigator() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            handleMicPress();
+            handleMicPress(isRecording, setIsRecording, recordingRef);
           },
         }}
       />
@@ -188,91 +273,6 @@ export default function App() {
     return () => authStateChanged();
   }, []);
 
-  const handleMicPress = async () => {
-    if (isRecording) {
-      await stopRecording();
-    } else {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status === 'granted') {
-        await startRecording();
-      } else {
-        Alert.alert('Permission denied', 'You need to grant microphone permission to use this feature.');
-      }
-    }
-    setIsRecording(!isRecording);
-  };
-
-  const startRecording = async () => {
-    try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
-      await recording.startAsync();
-      recordingRef.current = recording;
-      console.log("Recording started:", recordingRef.current);
-    } catch (error) {
-      console.error("Error starting recording:", error);
-    }
-  };
-
-  const stopRecording = async () => {
-    const recording = recordingRef.current;
-    if (!recording) {
-      console.error("No recording object available.");
-      return;
-    }
-
-    try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      console.log("Recording URI:", uri);
-
-      const base64 = await fetch(uri).then(res => res.arrayBuffer()).then(buf => Buffer.from(buf).toString('base64'));
-      console.log("Base64 audio data:", base64);
-
-      await sendAudioToGoogle(base64);
-    } catch (error) {
-      console.error("Error stopping recording:", error);
-    }
-  };
-
-  const sendAudioToGoogle = async (base64) => {
-    const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk';
-    const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
-
-    const body = {
-      config: {
-        encoding: 'LINEAR16',
-        sampleRateHertz: 16000,
-        languageCode: 'en-US',
-      },
-      audio: {
-        content: base64,
-      },
-    };
-
-    try {
-      const response = await axios.post(url, body);
-      const { data } = response;
-      console.log("Google API response:", JSON.stringify(data, null, 2));
-
-      if (data.results && data.results.length > 0 && data.results[0].alternatives && data.results[0].alternatives.length > 0) {
-        const transcript = data.results[0].alternatives[0].transcript;
-        Alert.alert('Transcription', transcript);
-      } else {
-        console.log("No transcription alternatives found");
-        Alert.alert('Error', 'No transcription received');
-      }
-    } catch (error) {
-      console.error("Error sending audio to Google:", error);
-      Alert.alert('Error', 'Error sending audio to Google');
-    }
-  };
-
   if (!appLoaded) {
     return <SplashScreen />;
   }
@@ -282,9 +282,19 @@ export default function App() {
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'black' } }}>
         {user ? (
-          <Stack.Screen name="Main" component={MainTabNavigator} />
+          <Stack.Screen name="Main">
+            {(props) => (
+              <MainTabNavigator
+                {...props}
+                handleMicPress={handleMicPress}
+                isRecording={isRecording}
+                setIsRecording={setIsRecording}
+                recordingRef={recordingRef}
+              />
+            )}
+          </Stack.Screen>
         ) : (
-          <Stack.Screen name="Auth" component={AuthStack}  />
+          <Stack.Screen name="Auth" component={AuthStack} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

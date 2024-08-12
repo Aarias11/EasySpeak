@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, TextInput, ScrollView, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -9,6 +9,9 @@ import TopHeaderNav from '../../components/TopHeaderNav';
 import styles from './HomeScreen.styles';
 
 const HomeScreen = ({ navigation }) => {
+const [activeTab, setActiveTab] = useState('text')
+const recordingRef = useRef(null);
+
   const [fromLanguage, setFromLanguage] = useState('en');
   const [toLanguage, setToLanguage] = useState('es');
   const [languages, setLanguages] = useState([]);
@@ -158,6 +161,97 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+
+
+  const startVoiceInput = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'You need to grant microphone permission to use this feature.');
+        return;
+      }
+
+      if (recordingRef.current) {
+        await recordingRef.current.stopAndUnloadAsync();
+        recordingRef.current = null;
+      }
+
+      const recording = new Audio.Recording();
+      recordingRef.current = recording;
+
+      await recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      await recording.startAsync();
+
+      setTimeout(async () => {
+        try {
+          await recording.stopAndUnloadAsync();
+          const uri = recording.getURI();
+
+          recordingRef.current = null;
+
+          const base64 = await fetch(uri).then(res => res.arrayBuffer()).then(buf => Buffer.from(buf).toString('base64'));
+
+          await sendAudioToGoogle(base64);
+        } catch (error) {
+          console.error('Error stopping recording:', error);
+        }
+      }, 5000);
+    } catch (error) {
+      console.error('Error during voice input:', error);
+    }
+  };
+  
+
+  const sendAudioToGoogle = async (base64) => {
+    const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
+    const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
+
+    const body = {
+      config: {
+        encoding: 'LINEAR16',
+        sampleRateHertz: 16000,
+        languageCode: 'en-US',
+      },
+      audio: {
+        content: base64,
+      },
+    };
+
+    try {
+      const response = await axios.post(url, body);
+      const { data } = response;
+
+      if (data.results && data.results.length > 0 && data.results[0].alternatives && data.results[0].alternatives.length > 0) {
+        const transcript = data.results[0].alternatives[0].transcript;
+        setInputText(transcript); // Set the recognized text to your inputText state
+      } else {
+        Alert.alert('Error', 'No transcription received');
+      }
+    } catch (error) {
+      console.error('Error sending audio to Google:', error);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (recordingRef.current) {
+      try {
+        await recordingRef.current.stopAndUnloadAsync();
+        const uri = recordingRef.current.getURI();
+        recordingRef.current = null; // Clear the reference after stopping the recording
+        return uri;
+      } catch (error) {
+        console.error('Error stopping recording:', error);
+      }
+    }
+  };
+  
+  
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ImageBackground
@@ -231,36 +325,81 @@ const HomeScreen = ({ navigation }) => {
               </View>
             )}
           </View>
-          <View style={styles.translationBox}>
-            <BlurView intensity={15} style={styles.blur}>
-              <View style={styles.translationContentContainer}>
-                <TextInput
-                  style={styles.inputTranslation}
-                  placeholder="Type or Push Mic to Translate"
-                  placeholderTextColor="#A7CCD6"
-                  value={inputText}
-                  onChangeText={setInputText}
-                  multiline={true}
-                />
-                <TouchableOpacity onPress={translateText} style={styles.translateButton}>
-                  <Text style={styles.translateButtonText}>Translate</Text>
-                </TouchableOpacity>
-              </View>
-              {translatedText ? (
-                <View style={styles.translatedTextContainer}>
-                  <Text style={styles.translatedText}>{translatedText}</Text>
-                  <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
-                    <MaterialIcons name="star" color="white" size={24} />
-                    <Text style={styles.favoriteButtonText}>Favorite</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
-                    <MaterialIcons name="volume-up" color="white" size={24} />
-                    <Text style={styles.speakButtonText}>Speak</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-            </BlurView>
-          </View>
+
+          <View style={styles.tabsContainer}>
+          <TouchableOpacity onPress={() => setActiveTab('text')}>
+            <Text style={[styles.tabsText, activeTab === 'text' && styles.activeTabText]}>
+              Text
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab('voice')}>
+            <Text style={[styles.tabsText, activeTab === 'voice' && styles.activeTabText]}>
+              Voice
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+
+          {activeTab === 'text' ? (
+  <View style={styles.translationBox}>
+    <BlurView intensity={15} style={styles.blur}>
+      <View style={styles.translationContentContainer}>
+      <TextInput
+  style={styles.inputTranslation}
+  placeholder="Enter text to translate"
+  placeholderTextColor="rgba(167, 204, 214, 0.7)" // 70% opacity
+  value={inputText}
+  onChangeText={setInputText}
+  multiline={true}
+/>
+
+        <TouchableOpacity onPress={translateText} style={styles.translateButton}>
+          <Text style={styles.translateButtonText}>Translate</Text>
+        </TouchableOpacity>
+      </View>
+      {translatedText ? (
+        <View style={styles.translatedTextContainer}>
+          <Text style={styles.translatedText}>{translatedText}</Text>
+          <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
+            <MaterialIcons name="star" color="white" size={24} />
+            <Text style={styles.favoriteButtonText}>Favorite</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
+            <MaterialIcons name="volume-up" color="white" size={24} />
+            <Text style={styles.speakButtonText}>Speak</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </BlurView>
+  </View>
+) : (
+  <View style={styles.translationBox}>
+    <BlurView intensity={15} style={styles.blur}>
+      <View style={styles.translationContentContainer}>
+        <TouchableOpacity onPress={startVoiceInput} style={styles.micButton}>
+          <MaterialIcons name="mic" color="white" size={30} />
+        </TouchableOpacity>
+      </View>
+      {translatedText ? (
+        <View style={styles.translatedTextContainer}>
+          <Text style={styles.translatedText}>{translatedText}</Text>
+          <TouchableOpacity onPress={addToFavorites} style={styles.favoriteButton}>
+            <MaterialIcons name="star" color="white" size={24} />
+            <Text style={styles.favoriteButtonText}>Favorite</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={speakTranslation} style={styles.speakButton}>
+            <MaterialIcons name="volume-up" color="white" size={24} />
+            <Text style={styles.speakButtonText}>Speak</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </BlurView>
+  </View>
+)}
+
+          
+           
+          
         </View>
       </ImageBackground>
     </TouchableWithoutFeedback>

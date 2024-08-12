@@ -167,4 +167,22 @@ export default StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
   },
+  tabsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    gap: 5,
+    padding: 20
+  },
+  tabsText: {
+    color: '#ecf0ef',
+    fontSize: 20,
+  },
+  activeTabText: {
+    textDecorationLine: 'underline', // Underline for active tab
+    fontWeight: 'bold', // Optional: To make the active tab stand out more
+  },
+  inactiveTab: {
+    opacity: 0.7, // 70% opacity for inactive tabs
+  },
 });

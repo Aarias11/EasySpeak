@@ -73,6 +73,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
+    // width: '100%'
   },
   voiceIconRight: {
     marginLeft: 10,

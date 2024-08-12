@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Alert } from 'react-native';
-import { auth, createUserWithEmailAndPassword, db, setDoc, doc } from '../../firebase';
-import styles from './Signup.styles'
+import { auth, db } from '../../firebase'; // Adjust the import as per your project structure
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { setDoc, doc } from 'firebase/firestore';
+import styles from './Signup.styles';
 
 const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -75,7 +77,5 @@ const SignupScreen = ({ navigation }) => {
     </ImageBackground>
   );
 };
-
-
 
 export default SignupScreen;
