@@ -18,7 +18,7 @@ import styles from './FavoritesScreen.styles';
 
 const FavoritesScreen = ({ navigation, route }) => {
   const [favorites, setFavorites] = useState([]);
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
+  const apiKey = process.env.GOOGLE_API_KEY;
 
   useEffect(() => {
     fetchFavorites();

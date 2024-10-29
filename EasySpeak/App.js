@@ -134,8 +134,7 @@ const stopRecording = async (recordingRef, setIsRecording) => {
 };
 
 const sendAudioToGoogle = async (base64) => {
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk';
-  const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
+  const url = `https://speech.googleapis.com/v1/speech:recognize?key=${process.env.GOOGLE_API_KEY}`;
 
   const body = {
     config: {

@@ -30,7 +30,7 @@ const CameraScreen = ({ navigation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const soundRef = useRef(null);
 
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
+  const apiKey = process.env.GOOGLE_API_KEY; // Replace with your actual Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();

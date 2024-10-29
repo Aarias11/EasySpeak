@@ -23,7 +23,7 @@ const recordingRef = useRef(null);
   const [inputText, setInputText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [avatar, setAvatar] = useState(null);
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
+  const apiKey = process.env.GOOGLE_API_KEY; 
 
   useEffect(() => {
     fetchLanguages();
@@ -208,7 +208,7 @@ const recordingRef = useRef(null);
   
 
   const sendAudioToGoogle = async (base64) => {
-    const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your Google Cloud API key
+    const apiKey = process.env.GOOGLE_API_KEY;
     const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
 
     const body = {

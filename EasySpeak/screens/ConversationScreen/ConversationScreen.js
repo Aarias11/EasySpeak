@@ -32,7 +32,7 @@ const ChatBubble = ({
   const [text, setText] = useState("");
   const [inputHeight, setInputHeight] = useState(50);
   const inputRef = useRef(null);
-  const apiKey = 'AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk'; // Replace with your actual Google Cloud API key
+  const apiKey = process.env.GOOGLE_API_KEY; // Replace with your actual Google Cloud API key
 
   const handleSend = () => {
     if (text.trim()) {
@@ -161,7 +161,7 @@ const ConversationScreen = ({ navigation }) => {
   const [showResponderInput, setShowResponderInput] = useState(false); // State to control responder input visibility
   const [avatar, setAvatar] = useState(null);
   const scrollViewRef = useRef(null); // Ref for ScrollView
-  const apiKey = "AIzaSyCGvCBIX2RNeihtAUD-EcGxXJApmFdESzk"; // Replace with your Google Cloud API key
+  const apiKey = process.env.GOOGLE_API_KEY; // Replace with your Google Cloud API key
 
   useEffect(() => {
     fetchLanguages();
