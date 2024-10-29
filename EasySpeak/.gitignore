@@ -30,6 +30,7 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env  # Ignore the main .env file
 
 # typescript
 *.tsbuildinfo
@@ -69,6 +70,7 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env  # Ignore the main .env file
 
 # typescript
 *.tsbuildinfo
